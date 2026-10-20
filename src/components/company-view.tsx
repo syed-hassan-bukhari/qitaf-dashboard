@@ -1,6 +1,6 @@
 "use client";
 
-import { BARRIER_TEXT, minResponses } from "@/lib/format";
+import { BARRIER_TEXT, minResponses, responseRateTip, validResponses } from "@/lib/format";
 import type { CompanyDashboard } from "@/lib/types";
 import {
   ActionsList, AnimatedNumber, Blocks, FlashPanel, FunnelChart, H2, Kpi, OrgChip, Ring, ScoreDots, StateCard,
@@ -20,17 +20,17 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
   return (
     <>
       {d.status !== "REPORTABLE" || !f ? (
-        <StateCard title={d.status === "NO_RESPONSES" ? "No employee answers yet" : "Results are hidden to protect privacy"}>
+        <StateCard title={d.status === "NO_RESPONSES" ? "No responses yet" : "Waiting for more responses"}>
           <p className="muted">
             {d.status === "NO_RESPONSES"
-              ? `No employee answers yet. Results will appear once at least ${min} employees have answered.`
-              : `${k.responded} employees have answered. Results appear at ${min} answers, so no individual can be identified.`}
+              ? `No responses yet. Results are shown once at least ${min} valid responses are received.`
+              : `${k.responded} of ${min} valid responses received. Results are shown once ${min} valid responses are in, to protect employee confidentiality.`}
           </p>
-          <div className="progress" role="progressbar" aria-label={`Answers toward the ${min} needed`}
+          <div className="progress" role="progressbar" aria-label={`Valid responses toward the ${min} needed`}
             aria-valuemin={0} aria-valuemax={min} aria-valuenow={Math.min(k.responded, min)}>
             <i style={{ width: `${Math.min(k.responded / min, 1) * 100}%` }} />
           </div>
-          <p className="small muted" style={{ marginTop: 8 }}>{k.responded} of {min} answers needed</p>
+          <p className="small muted" style={{ marginTop: 8 }}>{k.responded} of {min} valid responses needed</p>
         </StateCard>
       ) : (
         <>
@@ -45,9 +45,10 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
             <Kpi
               label="Response rate"
               info="company.rate"
+              tip={responseRateTip(k.invited, k.responded, k.response_rate)}
               value={k.response_rate !== null ? <AnimatedNumber value={k.response_rate} suffix="%" /> : "—"}
               watch={k.response_rate}
-              note={k.response_rate !== null ? `${k.responded} of ${k.invited} invited` : `${k.responded} answers; invited count not confirmed`}
+              note={k.response_rate !== null ? `${k.responded} of ${k.invited} invited` : `${validResponses(k.responded)}; invited count not confirmed`}
             >
               {k.response_rate !== null ? <Blocks pct={k.response_rate} /> : null}
             </Kpi>
@@ -83,7 +84,7 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
               <div className="note">
                 {Array.isArray(d.barriers)
                   ? "Main reasons for not redeeming: " + d.barriers.map((b) => `${BARRIER_TEXT[b.reason] || b.reason} (${b.count})`).join(", ")
-                  : `Reasons for not redeeming are hidden: ${d.barriers ? d.barriers.n : 0} answers, under ${min}.`}
+                  : `Reasons for not redeeming are hidden until at least ${min} valid responses are received (${d.barriers ? d.barriers.n : 0} so far).`}
               </div>
             </div>
           </section>
@@ -108,7 +109,7 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
         <ActionsList list={d.actions} />
       </section>
       <p className="footer-note">
-        Survey answers, not verified STC transactions. Employee results appear only with {min} or more answers per question.
+        Survey answers, not verified STC transactions. Employee results appear only with {min} or more valid responses per question.
         Trends appear after the second survey wave.
       </p>
     </>

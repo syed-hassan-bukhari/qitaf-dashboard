@@ -14,6 +14,15 @@ export const scoreColor = (s: number) => shadeAt(s);
 
 // [background, text] for a heatmap cell.
 export const tileColors = (s: number): [string, string] => [shadeAt(s), "#FFFFFF"];
+// "12 valid responses" / "1 valid response"
+export const validResponses = (n: number) => `${n} valid ${n === 1 ? "response" : "responses"}`;
+
+// Tooltip for any response-rate figure, built only from fields the RPCs return (no new maths on scores).
+export const responseRateTip = (invited: number | null | undefined, responded: number, rate: number | null | undefined) =>
+  rate !== null && rate !== undefined && invited !== null && invited !== undefined
+    ? `Invited: ${invited} · Valid responses: ${responded} · ${responded} ÷ ${invited} = ${rate}%`
+    : `Invited count not confirmed · ${validResponses(responded)}`;
+
 // The confidentiality threshold comes from the database per survey round; 10 only if it is missing.
 export const DEFAULT_MIN_RESPONSES = 10;
 export const minResponses = (v: number | null | undefined) =>

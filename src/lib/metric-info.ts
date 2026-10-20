@@ -14,14 +14,14 @@ export interface Metric {
 
 // Shared wording for the five 1–5 question columns.
 const ITEM_HOW = "Average of employee ratings from 1 (lowest) to 5 (highest) for that question.";
-const ITEM_HIDDEN = "Too few people answered that question (under the minimum number of answers for this survey round).";
+const ITEM_HIDDEN = "Fewer than the minimum number of valid responses for that question in this survey round.";
 
 export const METRICS = {
   /* ---------- Portfolio ---------- */
   "portfolio.companies": {
     section: "Portfolio", title: "Companies",
     what: "Companies taking part in the survey.",
-    how: "Count of companies, using each company’s latest survey round. “Reportable” = companies with at least the minimum number of employee answers for their survey round.",
+    how: "Count of companies, using each company’s latest survey round. “Results available” = companies with at least the minimum number of valid responses for their survey round.",
   },
   "portfolio.answers": {
     section: "Portfolio", title: "Employee answers",
@@ -29,10 +29,10 @@ export const METRICS = {
     how: "Count of employee responses that passed validation. Answers with errors (for example a wrong company code) are not counted; they go to the review queue.",
   },
   "portfolio.below": {
-    section: "Portfolio", title: "Below threshold",
+    section: "Portfolio", title: "Waiting for more responses",
     what: "Companies whose results can’t be shown yet.",
-    how: "Companies with fewer than the minimum number of employee answers for their survey round, including those with none.",
-    hidden: "Their scores stay hidden until they reach the minimum number of answers, so no individual can be identified.",
+    how: "Companies with fewer than the minimum number of valid responses for their survey round, including those with none.",
+    hidden: "Their scores stay hidden until they reach the minimum number of valid responses, so no individual can be identified.",
   },
   "portfolio.actions": {
     section: "Portfolio", title: "Open actions",
@@ -47,12 +47,15 @@ export const METRICS = {
 
   /* ---------- Heatmap columns ---------- */
   "heat.status": {
-    section: "Heatmap columns", title: "Privacy status",
-    text: "Reportable (at least the minimum number of answers, results shown), Hidden (some answers, but under the minimum), No answers yet.",
+    section: "Heatmap columns", title: "Results status",
+    what: "Whether this company’s results can be shown yet. “Results available · 12 valid responses” = the minimum has been reached. “Waiting for more responses · 9 of 12” = fewer valid responses than the minimum so far. “No responses yet” = none received.",
+    how: "Results are shown only when at least the minimum number of valid responses is received for the survey round, to protect employee confidentiality. Valid = passed all checks (correct company code, open survey round).",
+    hidden: "Below the minimum, results stay hidden so no individual can be identified.",
   },
   "heat.rate": {
     section: "Heatmap columns", title: "Response rate",
-    how: "Employee answers ÷ employees invited. Shown only when the invited count is confirmed by the company.",
+    how: "Valid responses ÷ employees invited, for example 12 ÷ 30 = 40%. Hover or tap the rate to see the numbers. Shown only when the invited count is confirmed by the company.",
+    hidden: "If the invited count is not confirmed, no rate is shown; the number of valid responses is shown instead.",
   },
   "heat.A07": { section: "Heatmap columns", title: "Appreciated", how: ITEM_HOW, hidden: ITEM_HIDDEN },
   "heat.A09": { section: "Heatmap columns", title: "Reward exp.", how: ITEM_HOW, hidden: ITEM_HIDDEN },
@@ -61,13 +64,13 @@ export const METRICS = {
   "heat.A03": {
     section: "Heatmap columns", title: "Ease",
     how: "Average 1–5 rating of how easy redeeming was, only from employees who tried to redeem.",
-    hidden: "Too few people tried (under the minimum number of answers for this survey round).",
+    hidden: "Fewer than the minimum number of people tried to redeem in this survey round.",
   },
   "heat.A01": { section: "Heatmap columns", title: "Clarity", how: ITEM_HOW, hidden: ITEM_HIDDEN },
   "heat.satisfied": {
     section: "Heatmap columns", title: "Satisfied",
     how: "% of employees who rated their overall reward experience 4 or 5 out of 5.",
-    hidden: "Fewer answers than the minimum for this survey round.",
+    hidden: "Fewer valid responses than the minimum for this survey round.",
   },
   "heat.actions": {
     section: "Heatmap columns", title: "Actions",
@@ -85,7 +88,7 @@ export const METRICS = {
   },
   "company.rate": {
     section: "Company results", title: "Response rate",
-    text: "Employee answers ÷ employees invited (only when the invited count is confirmed).",
+    text: "Valid responses ÷ employees invited, for example 12 ÷ 30 = 40% (hover or tap the rate to see the numbers). Shown only when the invited count is confirmed; otherwise the number of valid responses is shown.",
   },
   "company.redeemed": {
     section: "Company results", title: "Redeemed successfully",
@@ -97,11 +100,11 @@ export const METRICS = {
   },
   "company.scores": {
     section: "Company results", title: "Experience scores",
-    text: "Average rating per question, from 1 (lowest) to 5 (highest). Hidden = under the minimum number of answers for this survey round for that question.",
+    text: "Average rating per question, from 1 (lowest) to 5 (highest). Hidden = fewer than the minimum number of valid responses for that question in this survey round.",
   },
   "company.journey": {
     section: "Company results", title: "Redemption journey",
-    text: "Received points → Tried to redeem → Redeemed, based on what employees reported in the survey, not on verified STC transactions. Reasons for not redeeming are shown only when there are at least the minimum number of answers.",
+    text: "Received points → Tried to redeem → Redeemed, based on what employees reported in the survey, not on verified STC transactions. Reasons for not redeeming are shown only when there are at least the minimum number of valid responses.",
   },
   "company.org": {
     section: "Company results", title: "HR and IT assessment",
@@ -115,11 +118,11 @@ export const METRICS = {
   /* ---------- STC view ---------- */
   "stc.about": {
     section: "STC view", title: "STC view",
-    text: "Combined results across companies, excluding the pilot. Only companies with at least the minimum number of answers for their survey round are included, and results appear only when at least 3 such companies exist, so no single company can be identified. No company names are shown.",
+    text: "Combined results across companies, excluding the pilot. Only companies with results available (at least the minimum number of valid responses for their survey round) are included, and results appear only when at least 3 such companies exist, so no single company can be identified. No company names are shown.",
   },
   "stc.rate": {
     section: "STC view", title: "Response rate",
-    text: "Response rate here = total answers ÷ total invited, across companies with a confirmed invited count.",
+    text: "Response rate here = total valid responses ÷ total invited, across companies with a confirmed invited count.",
   },
 
   /* ---------- Review queue ---------- */

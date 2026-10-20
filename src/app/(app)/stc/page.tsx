@@ -24,7 +24,7 @@ export default function StcPage() {
       <>
         {head}
         <StateCard title="Combined results are hidden">
-          <p className="muted">{d.reason}. {d.participating} companies are taking part with {d.responses} answers so far.</p>
+          <p className="muted">{d.reason}. {d.participating} companies are taking part with {d.responses} valid responses so far.</p>
         </StateCard>
       </>
     );
@@ -45,7 +45,7 @@ export default function StcPage() {
           </div>
         </FlashPanel>
         <Kpi label="Participating companies" info="stc.about" value={<AnimatedNumber value={d.participating} />} watch={d.participating}
-          note={`${d.reportable_companies} with enough answers to report`} />
+          note={`${d.reportable_companies} companies with results available`} />
         <Kpi label="Response rate" info="stc.rate" value={d.response_rate !== null ? <AnimatedNumber value={d.response_rate} suffix="%" /> : "—"}
           watch={d.response_rate} note="Companies with a confirmed invited count">
           {d.response_rate !== null ? <Blocks pct={d.response_rate} /> : null}
@@ -74,7 +74,7 @@ export default function StcPage() {
       </section>
       <p className="footer-note">
         Survey answers, not verified STC transactions. Combined results appear only when at least 3 companies each have
-        the minimum number of answers for their survey round. No company names are shown.
+        the minimum number of valid responses for their survey round. No company names are shown.
       </p>
     </>
   );

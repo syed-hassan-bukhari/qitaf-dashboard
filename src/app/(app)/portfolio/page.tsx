@@ -3,11 +3,11 @@
 import { useMemo, useState } from "react";
 import { rpc } from "@/lib/supabase";
 import { useRpcData } from "@/lib/use-rpc-data";
-import { ITEM_COLS, fmtDate, fmtTime, minResponses, tileColors } from "@/lib/format";
+import { ITEM_COLS, fmtDate, fmtTime, minResponses, responseRateTip, tileColors, validResponses } from "@/lib/format";
 import { downloadCsv, today } from "@/lib/csv";
 import type { CompanyDashboard, Portfolio, PortfolioCompany } from "@/lib/types";
 import {
-  ActionsList, AnimatedNumber, ErrorCard, H2, Kpi, PageHead, PageSkeleton, ReportChip, actionStatusText,
+  ActionsList, AnimatedNumber, ErrorCard, H2, Kpi, PageHead, PageSkeleton, ReportChip, actionStatusText, reportChipText,
 } from "@/components/visuals";
 import { CompanyView } from "@/components/company-view";
 import { Drawer } from "@/components/drawer";
@@ -15,13 +15,13 @@ import { Tip } from "@/components/tip";
 import { InfoButton } from "@/components/info-button";
 import { itemMetricId, type MetricId } from "@/lib/metric-info";
 
-type Filter = "all" | "reportable" | "hidden" | "pilot";
+type Filter = "all" | "available" | "waiting" | "pilot";
 type Sort = { key: string; dir: "asc" | "desc" } | null;
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: "all", label: "All" },
-  { id: "reportable", label: "Reportable" },
-  { id: "hidden", label: "Hidden" },
+  { id: "available", label: "Results available" },
+  { id: "waiting", label: "Waiting for responses" },
   { id: "pilot", label: "Pilot" },
 ];
 const STATUS_ORDER = { REPORTABLE: 0, SUPPRESSED: 1, NO_RESPONSES: 2 } as const;
@@ -74,8 +74,8 @@ export default function PortfolioPage() {
     const needle = q.trim().toLowerCase();
     let r = d.companies.filter((c) => {
       if (needle && !c.name.toLowerCase().includes(needle)) return false;
-      if (filter === "reportable") return c.status === "REPORTABLE";
-      if (filter === "hidden") return c.status !== "REPORTABLE";
+      if (filter === "available") return c.status === "REPORTABLE";
+      if (filter === "waiting") return c.status !== "REPORTABLE";
       if (filter === "pilot") return c.record_type === "PILOT";
       return true;
     });
@@ -117,11 +117,11 @@ export default function PortfolioPage() {
   // CSV exports exactly the rows shown after search, filter and sort. Hidden stays "Hidden".
   const exportCompanies = () =>
     downloadCsv(`qitaf-portfolio-${today()}.csv`,
-      ["Company", "Pilot", "Privacy status", "Answers", "Response rate %", ...ITEM_COLS.map(([, l]) => l), "Satisfied %", "Open actions"],
+      ["Company", "Pilot", "Results status", "Valid responses", "Response rate %", ...ITEM_COLS.map(([, l]) => l), "Satisfied %", "Open actions"],
       rows.map((c) => [
         c.name,
         c.record_type === "PILOT" ? "Yes" : "No",
-        c.status === "REPORTABLE" ? "Reportable" : c.status === "SUPPRESSED" ? `Hidden, under ${minResponses(c.min_responses)} answers` : "No answers yet",
+        reportChipText(c.status, c.responded, minResponses(c.min_responses)),
         c.responded,
         c.response_rate !== null ? c.response_rate : "Not confirmed",
         ...ITEM_COLS.map(([code]) => {
@@ -139,13 +139,13 @@ export default function PortfolioPage() {
 
   return (
     <>
-      <PageHead title="Portfolio" sub="All companies in the program, their privacy status and follow-up."
+      <PageHead title="Portfolio" sub="All companies in the program, their results status and follow-up."
         updated={updated} onRefresh={reload} fmt={fmtTime} />
       <section className="grid-row">
-        <Kpi label="Companies" info="portfolio.companies" value={<AnimatedNumber value={k.companies} />} watch={k.companies} note={`${k.reportable} reportable`} />
+        <Kpi label="Companies" info="portfolio.companies" value={<AnimatedNumber value={k.companies} />} watch={k.companies} note={`${k.reportable} with results available`} />
         <Kpi label="Employee answers" info="portfolio.answers" value={<AnimatedNumber value={k.responses} />} watch={k.responses} note="Accepted answers" />
-        <Kpi label="Below threshold" info="portfolio.below" value={<AnimatedNumber value={k.below_threshold} />} watch={k.below_threshold}
-          note="Under the minimum number of answers, or none" color="var(--amber)" />
+        <Kpi label="Waiting for more responses" info="portfolio.below" value={<AnimatedNumber value={k.below_threshold} />} watch={k.below_threshold}
+          note="Fewer than the minimum valid responses" color="var(--amber)" />
         <Kpi label="Open actions" info="portfolio.actions" value={<AnimatedNumber value={k.open_actions} />} watch={k.open_actions} note={`${k.high_priority} high priority`} />
         <Kpi label="In review queue" info="portfolio.review" value={<AnimatedNumber value={k.in_review_queue} />} watch={k.in_review_queue}
           note="Answers that failed validation" color={k.in_review_queue ? "var(--alert-text)" : undefined} />
@@ -155,7 +155,7 @@ export default function PortfolioPage() {
         <div className="panel-head">
           <div>
             <H2 info="heat.colours">Company heatmap</H2>
-            <p className="section-sub">Average employee scores from 1 to 5. Hidden means under the minimum number of answers for that survey round. Select a company to see its full results.</p>
+            <p className="section-sub">Average employee scores from 1 to 5. Hidden means the company has fewer than the minimum valid responses for its survey round. Select a company to see its full results.</p>
           </div>
           <button type="button" className="btn-ghost" onClick={exportCompanies} disabled={!rows.length}>Download CSV</button>
         </div>
@@ -178,7 +178,7 @@ export default function PortfolioPage() {
             <thead>
               <tr>
                 {th("name", "Company")}
-                {th("status", "Privacy status", "heat.status")}
+                {th("status", "Results status", "heat.status")}
                 {th("rate", "Response rate", "heat.rate")}
                 {ITEM_COLS.map(([code, l]) => th(code, l, itemMetricId(code), true))}
                 {th("csat", "Satisfied", "heat.satisfied", true)}
@@ -196,30 +196,35 @@ export default function PortfolioPage() {
                       {c.name}
                     </button>
                     {c.record_type === "PILOT" ? <> <span className="chip chip-off">Pilot</span></> : null}
-                    <div className="small muted">{c.responded} answers</div>
+                    <div className="small muted">{validResponses(c.responded)}</div>
                   </td>
                   <td><ReportChip status={c.status} n={c.responded} min={minResponses(c.min_responses)} /></td>
                   <td>
-                    {c.response_rate !== null ? (
-                      <div className="rate">
-                        <div className="bar"><i style={{ width: `${Math.min(c.response_rate, 100)}%` }} /></div>
-                        {c.response_rate}%
-                      </div>
-                    ) : <span className="small muted">Invited not confirmed</span>}
+                    <Tip text={responseRateTip(c.invited, c.responded, c.response_rate)}>
+                      {c.response_rate !== null && c.invited !== null ? (
+                        <>
+                          <div className="rate">
+                            <div className="bar"><i style={{ width: `${Math.min(c.response_rate, 100)}%` }} /></div>
+                            {c.response_rate}%
+                          </div>
+                          <div className="small muted" style={{ marginTop: 4 }}>{c.responded} of {c.invited}</div>
+                        </>
+                      ) : <span className="small muted">Invited not confirmed</span>}
+                    </Tip>
                   </td>
                   {ITEM_COLS.map(([code, label]) => {
                     const v = c.items ? c.items[code] : null;
                     if (v === null || v === undefined) {
                       return (
                         <td key={code} className="cell-hidden">
-                          <Tip text={`${c.name}, ${label}: Hidden: under ${minResponses(c.min_responses)} answers`}>Hidden</Tip>
+                          <Tip text={`${c.name}, ${label}: Hidden: fewer than ${minResponses(c.min_responses)} valid responses`}>Hidden</Tip>
                         </td>
                       );
                     }
                     const [bg, fg] = tileColors(v);
                     return (
                       <td key={code} className="cell" style={{ background: bg, color: fg }}>
-                        <Tip text={`${c.name}, ${label}: ${Number(v).toFixed(1)} out of 5, ${c.responded} company answers`}>
+                        <Tip text={`${c.name}, ${label}: ${Number(v).toFixed(1)} out of 5, ${validResponses(c.responded)} in this company`}>
                           {Number(v).toFixed(1)}
                         </Tip>
                       </td>

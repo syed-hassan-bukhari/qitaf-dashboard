@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { ActionRow, Funnel, Item, OrgStatus, ReportStatus } from "@/lib/types";
-import { fmtDate, isOverdue, scoreColor } from "@/lib/format";
+import { fmtDate, isOverdue, scoreColor, validResponses } from "@/lib/format";
 import { useAnimatedNumber, useEntered } from "@/lib/motion";
 import { Tip } from "./tip";
 import { InfoButton } from "./info-button";
@@ -61,8 +61,8 @@ export function Blocks({ pct }: { pct: number }) {
   );
 }
 
-// `min` = the survey round's minimum number of answers; without it (STC pooled view) the text stays generic.
-export const underMinText = (min?: number) => (min ? `under ${min} answers` : "under the minimum number of answers");
+// `min` = the survey round's minimum number of valid responses; without it (STC pooled view) the text stays generic.
+export const underMinText = (min?: number) => (min ? `fewer than ${min} valid responses` : "fewer than the minimum number of valid responses");
 
 export function ScoreDots({ items, min }: { items: Item[]; min?: number }) {
   const entered = useEntered();
@@ -84,7 +84,7 @@ export function ScoreDots({ items, min }: { items: Item[]; min?: number }) {
         return (
           <div className="dot-row" key={it.code}>
             <span>{it.label}</span>
-            <Tip text={`${it.label}: ${it.score.toFixed(1)} out of 5, ${it.n} answers`} className="track">
+            <Tip text={`${it.label}: ${it.score.toFixed(1)} out of 5, ${it.n} responses`} className="track">
               <span className="fill" style={{ display: "block", width: `${pct}%`, background: col, ...delay }} />
               <span className="dot" style={{ left: `${pct}%`, background: col, ...delay }} />
             </Tip>
@@ -117,10 +117,24 @@ export function FunnelChart({ f }: { f: Funnel }) {
 
 /* ---------- chips and lists ---------- */
 
-export function ReportChip({ status, n, min }: { status: ReportStatus; n: number; min?: number }) {
-  if (status === "REPORTABLE") return <span className="chip chip-ok">Reportable (n={n})</span>;
-  if (status === "SUPPRESSED") return <span className="chip chip-wait">Hidden, {underMinText(min)}</span>;
-  return <span className="chip chip-off">No answers yet</span>;
+// Wording of the results-status chip (also used for the CSV export).
+export const reportChipText = (status: ReportStatus, n: number, min: number) =>
+  status === "REPORTABLE" ? `Results available · ${validResponses(n)}`
+    : status === "SUPPRESSED" ? `Waiting for more responses · ${n} of ${min}`
+    : "No responses yet";
+
+export const reportChipTip = (min: number) =>
+  `Results are shown only when at least ${min} valid responses are received, to protect employee confidentiality.`;
+
+export function ReportChip({ status, n, min }: { status: ReportStatus; n: number; min: number }) {
+  const text = reportChipText(status, n, min);
+  const tip = reportChipTip(min);
+  const cls = status === "REPORTABLE" ? "chip-ok" : status === "SUPPRESSED" ? "chip-wait" : "chip-off";
+  return (
+    <Tip inline text={tip} label={`${text}. ${tip}`}>
+      <span className={`chip ${cls}`}>{text}</span>
+    </Tip>
+  );
 }
 
 export function OrgChip({ status }: { status: OrgStatus }) {
@@ -163,14 +177,23 @@ export function ActionsList({ list, showCompany }: { list: ActionRow[]; showComp
   );
 }
 
-export function Kpi({ label, info, value, note, color, className = "grow-1", watch, children }: {
-  label: string; info?: MetricId; value: ReactNode; note?: ReactNode; color?: string; className?: string; watch?: unknown; children?: ReactNode;
+export function Kpi({ label, info, tip, value, note, color, className = "grow-1", watch, children }: {
+  label: string; info?: MetricId; tip?: string; value: ReactNode; note?: ReactNode; color?: string; className?: string; watch?: unknown; children?: ReactNode;
 }) {
   return (
     <FlashPanel className={className} watch={watch ?? (typeof value === "string" || typeof value === "number" ? value : null)}>
       <div className="kpi-label">{label}{info ? <InfoButton id={info} /> : null}</div>
-      <div className="kpi-num" style={color ? { color } : undefined}>{value}</div>
-      {note ? <div className="small muted">{note}</div> : null}
+      {tip ? (
+        <Tip text={tip}>
+          <div className="kpi-num" style={color ? { color } : undefined}>{value}</div>
+          {note ? <div className="small muted">{note}</div> : null}
+        </Tip>
+      ) : (
+        <>
+          <div className="kpi-num" style={color ? { color } : undefined}>{value}</div>
+          {note ? <div className="small muted">{note}</div> : null}
+        </>
+      )}
       {children}
     </FlashPanel>
   );
