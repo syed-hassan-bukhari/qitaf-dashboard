@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qitaf Insights</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+  :root {
+    --bg: #0B111C;
+    --panel: #141C2B;
+    --panel-2: #0F1624;
+    --line: #222D40;
+    --text: #E7ECF4;
+    --muted: #A6B0C2;
+    --accent: #3FD0B8;
+    --accent-ink: #062A25;
+    --amber: #F5B95A;
+    --coral: #F28B66;
+    --blue: #5A86C8;
+    --radius-lg: 18px;
+    --radius-sm: 10px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font-family: 'Sora', 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.5; }
+  button, input, select { font: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .wrap { max-width: 1360px; margin: 0 auto; padding: 24px 28px 48px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 12.5px; }
+  h1 { font-size: 26px; font-weight: 800; margin: 0; letter-spacing: -0.01em; }
+  h2 { font-size: 17px; font-weight: 700; margin: 0; }
+  .demo-flag { background: var(--amber); color: #1A1206; font-weight: 700; font-size: 12px; padding: 5px 12px; border-radius: 999px; white-space: nowrap; }
+
+  /* Login */
+  .login { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+  .login-card { width: 100%; max-width: 400px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 32px; }
+  .login-card h1 { margin-bottom: 6px; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-top: 16px; }
+  .field label { font-size: 13px; color: var(--muted); }
+  .field input, select { background: var(--panel-2); border: 1px solid var(--line); color: var(--text); border-radius: var(--radius-sm); padding: 12px 14px; min-height: 44px; }
+  .btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: var(--radius-sm); padding: 12px 18px; font-weight: 700; cursor: pointer; min-height: 44px; }
+  .btn:disabled { opacity: .6; cursor: wait; }
+  .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 14px; cursor: pointer; min-height: 44px; }
+  .error { color: var(--coral); font-size: 13px; margin-top: 12px; min-height: 18px; }
+
+  /* Shell */
+  .topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark { width: 38px; height: 38px; border-radius: 10px; background: var(--accent); display: grid; place-items: center; }
+  .nav { display: flex; flex-wrap: wrap; gap: 6px; background: var(--panel); padding: 6px; border-radius: 12px; }
+  .nav button { background: transparent; color: #C9D2E0; border: 0; border-radius: 8px; padding: 10px 16px; font-weight: 600; font-size: 13.5px; cursor: pointer; min-height: 40px; }
+  .nav button[aria-current="page"] { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+  .who { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .page-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; }
+  .refresh { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+  /* Panels */
+  .grid { display: flex; flex-wrap: wrap; gap: 16px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px; min-width: 0; }
+  .grow-1 { flex: 1 1 200px; } .grow-2 { flex: 2 1 380px; } .grow-3 { flex: 3 1 440px; }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+  .kpi-num { font-size: 38px; font-weight: 800; line-height: 1.1; margin-top: 8px; }
+  .kpi-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .section-sub { font-size: 12.5px; color: var(--muted); margin: 4px 0 18px; }
+
+  /* Hero ring */
+  .hero { display: flex; align-items: center; gap: 22px; }
+  .hero svg { flex: 0 0 auto; }
+
+  /* Response blocks */
+  .blocks { display: flex; gap: 3px; margin-top: 14px; }
+  .blocks span { flex: 1; height: 20px; border-radius: 3px; background: #2A3650; }
+  .blocks span.on { background: var(--accent); }
+
+  /* Score dots */
+  .dots { display: flex; flex-direction: column; gap: 18px; }
+  .dot-row { display: grid; grid-template-columns: minmax(120px, 190px) 1fr 40px; align-items: center; gap: 14px; }
+  .track { position: relative; height: 4px; background: var(--line); border-radius: 99px; }
+  .track .fill { height: 4px; border-radius: 99px; }
+  .track .dot { position: absolute; top: -6px; width: 16px; height: 16px; margin-left: -8px; border-radius: 99px; }
+  .track .ref { position: absolute; left: 80%; top: -10px; height: 24px; border-left: 1px dashed #5B6884; }
+  .score { text-align: right; font-weight: 700; }
+  .hidden-score { text-align: right; color: var(--muted); font-size: 12px; }
+
+  /* Funnel */
+  .funnel { display: flex; align-items: flex-end; gap: 14px; height: 210px; }
+  .funnel .col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .funnel .bar { width: 100%; border-radius: 10px 10px 4px 4px; }
+  .note { margin-top: 16px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--panel-2); font-size: 13px; color: #C9D2E0; }
+
+  /* Chips */
+  .chip { display: inline-block; padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .chip-ok { background: #123B36; color: #7DE3D3; }
+  .chip-wait { background: #3A2B12; color: var(--amber); }
+  .chip-off { background: var(--line); color: #C9D2E0; }
+  .chip-bad { background: #3D1F17; color: var(--coral); }
+
+  /* Heatmap tiles */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+  .tile { border-radius: var(--radius-sm); padding: 14px; }
+  .tile .t-label { font-size: 12px; opacity: .92; }
+  .tile .t-val { font-size: 20px; font-weight: 800; margin-top: 2px; }
+
+  /* Tables */
+  .table-box { overflow-x: auto; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0 6px; min-width: 760px; }
+  th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 0 10px 4px; }
+  td { padding: 12px 10px; background: var(--panel-2); font-size: 13.5px; }
+  td:first-child { border-radius: 10px 0 0 10px; } td:last-child { border-radius: 0 10px 10px 0; }
+  td.cell { text-align: center; font-weight: 700; border-radius: 0; }
+  td.cell-hidden { text-align: center; color: var(--muted); font-size: 12px; }
+  .rate { display: flex; align-items: center; gap: 8px; }
+  .rate .bar { width: 70px; height: 6px; background: var(--line); border-radius: 99px; }
+  .rate .bar i { display: block; height: 6px; border-radius: 99px; background: var(--accent); }
+
+  /* Actions */
+  .action { padding: 16px 0; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+  .action:first-of-type { border-top: 0; }
+  .action-main { flex: 1 1 360px; }
+  .action-title { font-weight: 700; }
+
+  /* Empty / hidden states */
+  .state { text-align: center; padding: 48px 24px; }
+  .state h2 { font-size: 20px; margin-bottom: 8px; }
+  .progress { max-width: 360px; margin: 18px auto 0; height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .progress i { display: block; height: 10px; background: var(--amber); }
+  .footer-note { margin-top: 20px; font-size: 12.5px; color: var(--muted); }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 16px; }
+    .dot-row { grid-template-columns: 1fr 40px; }
+    .dot-row .track { grid-column: 1 / -1; grid-row: 2; }
+    .kpi-num { font-size: 32px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+/* =====================================================================
+   SETTINGS — fill these two values (Supabase → Project Settings → API).
+   The publishable key is safe in a browser; NEVER put a secret key here.
+   ===================================================================== */
+const SUPABASE_URL = 'https://buvqudaqnaakuajybxix.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'PASTE_YOUR_PUBLISHABLE_KEY_HERE';
+const AUTO_REFRESH_SECONDS = 20;
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const app = document.getElementById('app');
+
+const state = { profile: null, view: null, company: null, companies: [], timer: null, updated: null };
+
+/* ---------- helpers ---------- */
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const scoreColor = (s) => (s >= 4 ? 'var(--accent)' : s >= 3.7 ? 'var(--amber)' : 'var(--coral)');
+const tileColors = (s) => (s >= 4 ? ['#1F5A51', '#D5F5EF'] : s >= 3.7 ? ['#6B4A1C', '#FCE9C8'] : ['#6B2A1C', '#FCD9CF']);
+const fmtDate = (d) => (d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
+const fmtTime = (d) => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+const CODE_TEXT = {
+  SOME_LESS: 'Somewhat less time', MUCH_LESS: 'Much less time', NO_CHANGE: 'No change',
+  SOME_MORE: 'Somewhat more time', MUCH_MORE: 'Much more time', NOT_APPLICABLE: 'Not applicable',
+  ONBOARDING: 'Onboarding', ALLOCATION: 'Points allocation', REDEMPTION: 'Redemption issues',
+  REPORT: 'Reporting', INVOICING: 'Invoicing', SUPPORT: 'Support', OTHER: 'Other', NONE: 'None',
+  EXPANDING: 'Already expanding', PLANNED: 'Expansion planned', POSSIBLE: 'Possible, not planned',
+  DONT_KNOW: 'Does not know', FILE: 'File-based process', PAYROLL: 'Payroll system',
+  NO_SUPPORT: 'No support needed', NOT_DECIDER: 'Not involved in decision',
+  TOO_EARLY: 'Too early to say', NO_REPORTS: 'No reports available',
+  DUP: 'Duplicate allocations', MISMATCH: 'Records do not match'
+};
+const BARRIER_TEXT = { MERCHANT: 'Merchant issue', TERMS: 'Terms unclear', TECH: 'Technical problem', SAVE: 'Saving points' };
+const orgValue = (it) => {
+  if (it.score !== null && it.score !== undefined && String(it.value || '').startsWith('SCORE_')) return `${it.score} / 5`;
+  return (it.value || '').split(', ').map((c) => CODE_TEXT[c] || c).join(', ');
+};
+const statusChip = (s) => ({
+  SUBMITTED: '<span class="chip chip-ok">Submitted</span>',
+  NOT_SUBMITTED: '<span class="chip chip-wait">Not submitted</span>',
+  NOT_APPLICABLE: '<span class="chip chip-off">Not applicable</span>'
+}[s] || '');
+const reportChip = (s, n) => ({
+  REPORTABLE: `<span class="chip chip-ok">Reportable (n=${n})</span>`,
+  SUPPRESSED: `<span class="chip chip-wait">Hidden, under 10 answers</span>`,
+  NO_RESPONSES: '<span class="chip chip-off">No answers yet</span>'
+}[s] || '');
+const actionChip = (a) => {
+  const overdue = a.status !== 'Closed' && a.due_date && new Date(a.due_date) < new Date();
+  if (overdue) return '<span class="chip chip-bad">Overdue</span>';
+  if (a.status === 'In progress') return '<span class="chip chip-ok">In progress</span>';
+  return '<span class="chip chip-wait">Open</span>';
+};
+
+async function rpc(name, args) {
+  const { data, error } = await sb.rpc(name, args || {});
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+/* ---------- login ---------- */
+function renderLogin(message) {
+  stopTimer();
+  app.innerHTML = `
+  <main class="login">
+    <form class="login-card" id="login-form" novalidate>
+      <h1>Qitaf Insights</h1>
+      <p class="muted">Sign in to see your rewards results.</p>
+      <p><span class="demo-flag">Fictional demo data</span></p>
+      <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+      <div class="error" id="login-error" role="alert">${esc(message || '')}</div>
+      <button class="btn" type="submit" id="login-btn" style="width:100%;margin-top:8px">Sign in</button>
+    </form>
+  </main>`;
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('login-btn');
+    const err = document.getElementById('login-error');
+    btn.disabled = true; btn.textContent = 'Signing in…'; err.textContent = '';
+    const { error } = await sb.auth.signInWithPassword({
+      email: document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value
+    });
+    if (error) {
+      err.textContent = 'Email or password is incorrect.';
+      btn.disabled = false; btn.textContent = 'Sign in';
+      return;
+    }
+    start();
+  });
+}
+
+/* ---------- shell ---------- */
+const NAV = {
+  ADMIN: [['portfolio', 'Portfolio'], ['company', 'Company results'], ['stc', 'STC view'], ['review', 'Review queue']],
+  COMPANY_HR: [['company', 'Our results']],
+  STC: [['stc', 'Program overview']]
+};
+
+function renderShell() {
+  const p = state.profile;
+  const roleText = { ADMIN: 'Asalah admin', COMPANY_HR: p.company_name || 'Company HR', STC: 'STC' }[p.role];
+  app.innerHTML = `
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#062A25" stroke-width="2.2" aria-hidden="true"><path d="M4 19V10M10 19V5M16 19v-7M22 19H2"/></svg></div>
+        <div><div style="font-weight:800">Qitaf Insights</div><div class="small muted">${esc(roleText)}</div></div>
+      </div>
+      <nav class="nav" aria-label="Sections">
+        ${NAV[p.role].map(([id, label]) => `<button type="button" data-view="${id}" ${state.view === id ? 'aria-current="page"' : ''}>${label}</button>`).join('')}
+      </nav>
+      <div class="who">
+        <span class="demo-flag">Fictional demo data</span>
+        <span class="small muted">${esc(p.email)}</span>
+        <button type="button" class="btn-ghost" id="signout">Sign out</button>
+      </div>
+    </header>
+    <div id="page"></div>
+  </div>`;
+  app.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => { state.view = b.dataset.view; renderShell(); load(); }));
+  document.getElementById('signout').addEventListener('click', async () => { await sb.auth.signOut(); renderLogin(); });
+}
+
+function pageHead(title, sub, extra) {
+  return `<div class="page-head">
+    <div><h1>${title}</h1>${sub ? `<div class="muted small" style="margin-top:6px">${sub}</div>` : ''}</div>
+    <div class="refresh">${extra || ''}
+      <span class="small muted" id="updated">${state.updated ? 'Updated ' + fmtTime(state.updated) : ''}</span>
+      <button type="button" class="btn-ghost" id="refresh-btn">Refresh</button>
+    </div>
+  </div>`;
+}
+
+function bindHead() {
+  const r = document.getElementById('refresh-btn');
+  if (r) r.addEventListener('click', () => load());
+  const sel = document.getElementById('company-picker');
+  if (sel) sel.addEventListener('change', () => { state.company = sel.value; load(); });
+}
+
+/* ---------- shared visuals ---------- */
+function ring(pct, size) {
+  const r = 66, c = 2 * Math.PI * r, d = (pct / 100) * c;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 160 160" role="img" aria-label="${pct} percent satisfied">
+    <circle cx="80" cy="80" r="${r}" fill="none" stroke="#222D40" stroke-width="16"/>
+    <circle cx="80" cy="80" r="${r}" fill="none" stroke="var(--accent)" stroke-width="16" stroke-linecap="round" stroke-dasharray="${d.toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 80 80)"/>
+    <text x="80" y="90" text-anchor="middle" font-size="32" font-weight="800" fill="#E7ECF4" font-family="Sora, sans-serif">${pct}%</text>
+  </svg>`;
+}
+
+function blocks(pct) {
+  const on = Math.round((pct || 0) / 10);
+  return `<div class="blocks" aria-hidden="true">${Array.from({ length: 10 }, (_, i) => `<span class="${i < on ? 'on' : ''}"></span>`).join('')}</div>`;
+}
+
+function scoreDots(items) {
+  return `<div class="dots">${items.map((it) => {
+    if (it.score === null || it.score === undefined) {
+      return `<div class="dot-row"><span class="muted">${esc(it.label)}</span><div class="track"><span class="ref"></span></div><span class="hidden-score">Hidden</span></div>`;
+    }
+    const pct = (it.score / 5) * 100, col = scoreColor(it.score);
+    return `<div class="dot-row">
+      <span>${esc(it.label)}</span>
+      <div class="track" role="img" aria-label="${esc(it.label)} ${it.score} out of 5">
+        <div class="fill" style="width:${pct}%;background:${col}"></div>
+        <span class="dot" style="left:${pct}%;background:${col}"></span>
+        <span class="ref"></span>
+      </div>
+      <span class="score">${it.score.toFixed(1)}</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function funnel(f) {
+  const max = Math.max(f.received, 1);
+  const col = (n, label, color) => `<div class="col"><strong style="font-size:20px">${n}</strong>
+    <div class="bar" style="height:${Math.max((n / max) * 160, 6)}px;background:${color}"></div><span class="small muted">${label}</span></div>`;
+  return `<div class="funnel" role="img" aria-label="${f.received} received, ${f.tried} tried, ${f.succeeded} redeemed">
+    ${col(f.received, 'Received points', '#3B4C6B')}${col(f.tried, 'Tried to redeem', 'var(--blue)')}${col(f.succeeded, 'Redeemed', 'var(--accent)')}
+  </div>`;
+}
+
+function actionsList(list, showCompany) {
+  if (!list || !list.length) return '<p class="muted">No open actions.</p>';
+  return list.map((a) => `<div class="action">
+    <div class="action-main">
+      <div class="action-title">${esc(a.recommendation || a.issue)}</div>
+      <div class="small muted" style="margin-top:4px">${showCompany && a.company ? esc(a.company) + ' — ' : ''}${esc(a.issue)}</div>
+      ${a.next_step ? `<div class="small" style="margin-top:6px">Next step: ${esc(a.next_step)}</div>` : ''}
+    </div>
+    <div style="text-align:right">
+      ${actionChip(a)} <span class="chip chip-off">${esc(a.priority)}</span>
+      <div class="small muted" style="margin-top:6px">${esc(a.owner)}${a.due_date ? ', due ' + fmtDate(a.due_date) : ''}</div>
+    </div>
+  </div>`).join('');
+}
+
+/* ---------- company page ---------- */
+async function renderCompany() {
+  const page = document.getElementById('page');
+  const isAdmin = state.profile.role === 'ADMIN';
+  if (isAdmin && !state.companies.length) state.companies = await rpc('list_companies');
+  if (isAdmin && !state.company) state.company = (state.companies.find((c) => c.company_id === 'TEST-012') || state.companies[0]).company_id;
+
+  const d = await rpc('get_company_dashboard', { p_company: isAdmin ? state.company : null });
+  state.updated = new Date();
+  const picker = isAdmin ? `<label class="small muted" for="company-picker">Company</label>
+    <select id="company-picker">${state.companies.map((c) => `<option value="${esc(c.company_id)}" ${c.company_id === state.company ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>` : '';
+  const k = d.kpi;
+  const sub = `Wave ${esc(d.wave.wave_id)}, ${d.wave.status === 'OPEN' ? 'open' : 'closed'}. ${reportChip(d.status, k.responded)}`;
+
+  let body = '';
+  if (d.status !== 'REPORTABLE') {
+    const n = k.responded;
+    body = `<section class="panel state">
+      <h2>${d.status === 'NO_RESPONSES' ? 'No employee answers yet' : 'Results are hidden to protect privacy'}</h2>
+      <p class="muted">${d.status === 'NO_RESPONSES'
+        ? 'Results will appear once at least 10 employees have answered.'
+        : `${n} employees have answered. Results appear at 10 answers, so no individual can be identified.`}</p>
+      <div class="progress" aria-hidden="true"><i style="width:${Math.min(n / 10, 1) * 100}%"></i></div>
+      <p class="small muted" style="margin-top:8px">${n} of 10 answers needed</p>
+    </section>`;
+  } else {
+    const lowest = [...d.items].filter((i) => i.score !== null).sort((a, b) => a.score - b.score)[0];
+    const f = d.funnel;
+    const redeemedAll = f.received ? Math.round((f.succeeded / f.received) * 100) : null;
+    body = `
+    <section class="grid">
+      <div class="panel grow-2 hero">
+        ${k.csat !== null ? ring(k.csat, 150) : ''}
+        <div>
+          <div class="kpi-label">Employees satisfied</div>
+          <div style="margin-top:8px">${k.csat_favorable} of ${k.csat_n} rated their overall experience 4 or 5</div>
+        </div>
+      </div>
+      <div class="panel grow-1">
+        <div class="kpi-label">Response rate</div>
+        <div class="kpi-num">${k.response_rate !== null ? k.response_rate + '%' : '—'}</div>
+        <div class="small muted">${k.response_rate !== null ? `${k.responded} of ${k.invited} invited` : `${k.responded} answers; invited count not confirmed`}</div>
+        ${k.response_rate !== null ? blocks(k.response_rate) : ''}
+      </div>
+      <div class="panel grow-1">
+        <div class="kpi-label">Redeemed successfully</div>
+        <div class="kpi-num">${redeemedAll}%</div>
+        <div class="small muted">${f.succeeded} of ${f.received} who received points</div>
+        ${f.success_among_tried !== null ? `<div class="small" style="color:var(--accent);margin-top:12px;font-weight:600">${f.success_among_tried}% of those who tried</div>` : ''}
+      </div>
+      ${lowest ? `<div class="panel grow-1">
+        <div class="kpi-label">Lowest score</div>
+        <div class="kpi-num" style="color:${scoreColor(lowest.score)}">${lowest.score.toFixed(1)}</div>
+        <div class="small muted">${esc(lowest.label)}</div>
+      </div>` : ''}
+    </section>
+
+    <section class="grid" style="margin-top:16px">
+      <div class="panel grow-3">
+        <h2>Experience scores</h2>
+        <p class="section-sub">Average from 1 to 5. The dashed line marks 4.0.</p>
+        ${scoreDots(d.items)}
+      </div>
+      <div class="panel grow-2">
+        <h2>Redemption journey</h2>
+        <p class="section-sub">What employees told us, not verified STC transactions.</p>
+        ${funnel(f)}
+        <div class="note">${d.barriers && !d.barriers.suppressed
+          ? 'Main reasons for not redeeming: ' + d.barriers.map((b) => `${esc(BARRIER_TEXT[b.reason] || b.reason)} (${b.count})`).join(', ')
+          : `Reasons for not redeeming are hidden: ${d.barriers ? d.barriers.n : 0} answers, under 10.`}</div>
+      </div>
+    </section>`;
+  }
+
+  const org = d.org;
+  const tiles = org.items.filter((i) => i.score !== null && String(i.value).startsWith('SCORE_'));
+  const others = org.items.filter((i) => !(i.score !== null && String(i.value).startsWith('SCORE_')));
+  body += `
+  <section class="panel" style="margin-top:16px">
+    <div class="page-head" style="margin-bottom:14px">
+      <h2>HR and IT assessment</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="small muted">HR</span>${statusChip(org.hr_status)}
+        <span class="small muted">IT</span>${statusChip(org.it_status)}
+        <span class="small muted">Finance</span>${statusChip(org.finance_status)}
+      </div>
+    </div>
+    ${tiles.length ? `<div class="tiles">${tiles.map((t) => { const [bg, fg] = tileColors(t.score);
+      return `<div class="tile" style="background:${bg};color:${fg}"><div class="t-label">${t.group}: ${esc(t.label)}</div><div class="t-val">${t.score} / 5</div></div>`; }).join('')}</div>`
+      : '<p class="muted">No HR or IT assessment submitted yet.</p>'}
+    ${others.length ? `<div class="note">${others.map((o) => `${o.group}, ${esc(o.label)}: <strong>${esc(orgValue(o))}</strong>`).join('<br>')}</div>` : ''}
+  </section>
+
+  <section class="panel" style="margin-top:16px">
+    <h2>Actions</h2>
+    <p class="section-sub">What we agreed to do next.</p>
+    ${actionsList(d.actions, false)}
+  </section>
+  <p class="footer-note">Survey answers, not verified STC transactions. Employee results appear only with 10 or more answers per question. Trends appear after the second survey wave.</p>`;
+
+  page.innerHTML = pageHead(esc(d.company.name), sub, picker) + body;
+  bindHead();
+}
+
+/* ---------- portfolio page ---------- */
+const ITEM_COLS = [['A07', 'Appreciated'], ['A09', 'Reward exp.'], ['A06', 'Usefulness'], ['A05', 'Merchants'], ['A03', 'Ease'], ['A01', 'Clarity']];
+
+async function renderPortfolio() {
+  const page = document.getElementById('page');
+  const d = await rpc('get_portfolio');
+  state.updated = new Date();
+  const k = d.kpi;
+  const kpi = (label, val, note, color) => `<div class="panel grow-1"><div class="kpi-label">${label}</div>
+    <div class="kpi-num" ${color ? `style="color:${color}"` : ''}>${val}</div><div class="small muted">${note}</div></div>`;
+
+  const rows = d.companies.map((c) => {
+    const cells = ITEM_COLS.map(([code]) => {
+      const v = c.items ? c.items[code] : null;
+      if (v === null || v === undefined) return '<td class="cell-hidden">Hidden</td>';
+      const [bg, fg] = tileColors(v);
+      return `<td class="cell" style="background:${bg};color:${fg}">${Number(v).toFixed(1)}</td>`;
+    }).join('');
+    const rate = c.response_rate !== null
+      ? `<div class="rate"><div class="bar"><i style="width:${Math.min(c.response_rate, 100)}%"></i></div>${c.response_rate}%</div>`
+      : '<span class="small muted">Invited not confirmed</span>';
+    return `<tr>
+      <td><strong>${esc(c.name)}</strong>${c.record_type === 'PILOT' ? ' <span class="chip chip-off">Pilot</span>' : ''}<div class="small muted">${c.responded} answers</div></td>
+      <td>${reportChip(c.status, c.responded)}</td>
+      <td>${rate}</td>
+      ${cells}
+      <td style="text-align:center">${c.csat !== null && c.csat !== undefined ? c.csat + '%' : '<span class="small muted">—</span>'}</td>
+      <td style="text-align:center">${c.open_actions}</td>
+    </tr>`;
+  }).join('');
+
+  page.innerHTML = pageHead('Portfolio', 'All companies in the program, their privacy status and follow-up.') + `
+  <section class="grid">
+    ${kpi('Companies', k.companies, `${k.reportable} reportable`)}
+    ${kpi('Employee answers', k.responses, 'Accepted answers')}
+    ${kpi('Below threshold', k.below_threshold, 'Under 10 answers or none', 'var(--amber)')}
+    ${kpi('Open actions', k.open_actions, `${k.high_priority} high priority`)}
+    ${kpi('In review queue', k.in_review_queue, 'Answers that failed validation', k.in_review_queue ? 'var(--coral)' : '')}
+  </section>
+  <section class="panel" style="margin-top:16px">
+    <h2>Company heatmap</h2>
+    <p class="section-sub">Average employee scores from 1 to 5. Hidden means under 10 answers.</p>
+    <div class="table-box"><table>
+      <thead><tr><th>Company</th><th>Privacy status</th><th>Response rate</th>${ITEM_COLS.map(([, l]) => `<th style="text-align:center">${l}</th>`).join('')}<th style="text-align:center">Satisfied</th><th style="text-align:center">Actions</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+  </section>
+  <section class="panel" style="margin-top:16px">
+    <h2>Open actions</h2>
+    <p class="section-sub">Across all companies, soonest first.</p>
+    ${actionsList(d.actions, true)}
+  </section>`;
+  bindHead();
+}
+
+/* ---------- STC page ---------- */
+async function renderStc() {
+  const page = document.getElementById('page');
+  const d = await rpc('get_stc_overview');
+  state.updated = new Date();
+  const head = pageHead('Program overview', 'Combined results across participating companies. Pilot data is excluded.');
+  if (d.status !== 'REPORTABLE') {
+    page.innerHTML = head + `<section class="panel state"><h2>Combined results are hidden</h2>
+      <p class="muted">${esc(d.reason)}. ${d.participating} companies are taking part with ${d.responses} answers so far.</p></section>`;
+    bindHead(); return;
+  }
+  const f = d.funnel;
+  page.innerHTML = head + `
+  <section class="grid">
+    <div class="panel grow-2 hero">${ring(d.csat, 150)}
+      <div><div class="kpi-label">Employees satisfied</div><div style="margin-top:8px">Across ${d.csat_n} employees in ${d.reportable_companies} companies</div></div>
+    </div>
+    <div class="panel grow-1"><div class="kpi-label">Participating companies</div><div class="kpi-num">${d.participating}</div><div class="small muted">${d.reportable_companies} with enough answers to report</div></div>
+    <div class="panel grow-1"><div class="kpi-label">Response rate</div><div class="kpi-num">${d.response_rate !== null ? d.response_rate + '%' : '—'}</div><div class="small muted">Companies with a confirmed invited count</div>${d.response_rate !== null ? blocks(d.response_rate) : ''}</div>
+    <div class="panel grow-1"><div class="kpi-label">Redeemed successfully</div><div class="kpi-num">${Math.round((f.succeeded / f.received) * 100)}%</div><div class="small muted">${f.succeeded} of ${f.received} who received points</div></div>
+  </section>
+  <section class="grid" style="margin-top:16px">
+    <div class="panel grow-3"><h2>Experience scores</h2><p class="section-sub">Average from 1 to 5. The dashed line marks 4.0.</p>${scoreDots(d.items)}</div>
+    <div class="panel grow-2"><h2>Redemption journey</h2><p class="section-sub">Self-reported, not verified STC transactions.</p>${funnel(f)}</div>
+  </section>
+  <section class="panel" style="margin-top:16px"><h2>Joint actions with STC</h2><p class="section-sub">Agreed follow-up between Asalah and STC.</p>${actionsList(d.actions, false)}</section>
+  <p class="footer-note">Combined results appear only when at least 3 companies each have 10 or more answers. No company names are shown.</p>`;
+  bindHead();
+}
+
+/* ---------- review queue ---------- */
+async function renderReview() {
+  const page = document.getElementById('page');
+  const rows = await rpc('get_review_queue');
+  state.updated = new Date();
+  page.innerHTML = pageHead('Review queue', 'Answers that failed validation. They are kept, not counted, until fixed.') + `
+  <section class="panel">${rows.length ? `<div class="table-box"><table>
+    <thead><tr><th>Received</th><th>Form</th><th>Language</th><th>Company code entered</th><th>Reason</th></tr></thead>
+    <tbody>${rows.map((r) => `<tr>
+      <td>${esc(new Date(r.submitted_at).toLocaleString('en-GB'))}</td>
+      <td>${esc({ A: 'Employee', B: 'HR', C: 'Finance', D: 'IT' }[r.audience] || r.audience)}</td>
+      <td>${esc(r.language || '')}</td>
+      <td><strong>${esc(r.company_code_entered || '(empty)')}</strong></td>
+      <td><span class="chip chip-bad">${esc(r.reason_code)}</span><div class="small muted" style="margin-top:4px">${esc(r.reason)}</div></td>
+    </tr>`).join('')}</tbody></table></div>`
+    : '<div class="state"><h2>Nothing to review</h2><p class="muted">All answers passed validation.</p></div>'}</section>`;
+  bindHead();
+}
+
+/* ---------- loading ---------- */
+async function load() {
+  const page = document.getElementById('page');
+  try {
+    if (state.view === 'portfolio') await renderPortfolio();
+    else if (state.view === 'company') await renderCompany();
+    else if (state.view === 'stc') await renderStc();
+    else if (state.view === 'review') await renderReview();
+  } catch (e) {
+    page.innerHTML = `<section class="panel state"><h2>Could not load this page</h2><p class="muted">${esc(e.message)}</p>
+      <button type="button" class="btn-ghost" id="retry">Try again</button></section>`;
+    document.getElementById('retry').addEventListener('click', load);
+  }
+}
+
+function stopTimer() { if (state.timer) clearInterval(state.timer); state.timer = null; }
+
+async function start() {
+  try {
+    state.profile = await rpc('my_profile');
+  } catch (e) {
+    renderLogin('Could not load your account: ' + e.message);
+    return;
+  }
+  if (!state.profile || !state.profile.role) {
+    await sb.auth.signOut();
+    renderLogin('This account has no access yet. Ask Asalah to assign a role.');
+    return;
+  }
+  state.view = NAV[state.profile.role][0][0];
+  renderShell();
+  await load();
+  stopTimer();
+  state.timer = setInterval(load, AUTO_REFRESH_SECONDS * 1000);
+}
+
+(async () => {
+  if (SUPABASE_PUBLISHABLE_KEY.startsWith('PASTE_')) {
+    app.innerHTML = '<main class="login"><div class="login-card"><h1>Almost ready</h1><p class="muted">Open this file in a text editor and paste your Supabase publishable key into SUPABASE_PUBLISHABLE_KEY.</p></div></main>';
+    return;
+  }
+  const { data } = await sb.auth.getSession();
+  if (data.session) start(); else renderLogin();
+})();
+</script>
+</body>
+</html>

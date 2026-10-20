@@ -1,0 +1,80 @@
+"use client";
+
+import { rpc } from "@/lib/supabase";
+import { useRpcData } from "@/lib/use-rpc-data";
+import { fmtTime } from "@/lib/format";
+import type { StcOverview } from "@/lib/types";
+import {
+  ActionsList, AnimatedNumber, Blocks, ErrorCard, FlashPanel, FunnelChart, Kpi, PageHead, PageSkeleton, Ring, ScoreDots, StateCard,
+} from "@/components/visuals";
+
+export default function StcPage() {
+  const { data: d, error, updated, reload } = useRpcData<StcOverview>(() => rpc("get_stc_overview"), "stc");
+  if (error) return <ErrorCard message={error} onRetry={reload} />;
+  if (!d) return <PageSkeleton />;
+
+  const head = (
+    <PageHead title="Program overview" sub="Combined results across participating companies. Pilot data is excluded."
+      updated={updated} onRefresh={reload} fmt={fmtTime} />
+  );
+
+  if (d.status !== "REPORTABLE") {
+    return (
+      <>
+        {head}
+        <StateCard title="Combined results are hidden">
+          <p className="muted">{d.reason}. {d.participating} companies are taking part with {d.responses} answers so far.</p>
+        </StateCard>
+      </>
+    );
+  }
+
+  const f = d.funnel;
+  const redeemed = f.received ? Math.round((f.succeeded / f.received) * 100) : null;
+
+  return (
+    <>
+      {head}
+      <section className="grid-row">
+        <FlashPanel className="grow-2 hero" watch={d.csat}>
+          <Ring pct={d.csat} />
+          <div>
+            <div className="kpi-label">Employees satisfied</div>
+            <div style={{ marginTop: 8 }}>Across {d.csat_n} employees in {d.reportable_companies} companies</div>
+          </div>
+        </FlashPanel>
+        <Kpi label="Participating companies" value={<AnimatedNumber value={d.participating} />} watch={d.participating}
+          note={`${d.reportable_companies} with enough answers to report`} />
+        <Kpi label="Response rate" value={d.response_rate !== null ? <AnimatedNumber value={d.response_rate} suffix="%" /> : "—"}
+          watch={d.response_rate} note="Companies with a confirmed invited count">
+          {d.response_rate !== null ? <Blocks pct={d.response_rate} /> : null}
+        </Kpi>
+        <Kpi label="Redeemed successfully" value={redeemed !== null ? <AnimatedNumber value={redeemed} suffix="%" /> : "—"}
+          watch={redeemed} note={`${f.succeeded} of ${f.received} who received points`} />
+      </section>
+
+      <section className="grid-row mt">
+        <div className="panel grow-3">
+          <h2>Experience scores</h2>
+          <p className="section-sub">Average from 1 to 5. The dashed line marks 4.0.</p>
+          <ScoreDots items={d.items} />
+        </div>
+        <div className="panel grow-2">
+          <h2>Redemption journey</h2>
+          <p className="section-sub">Self-reported, not verified STC transactions.</p>
+          <FunnelChart f={f} />
+        </div>
+      </section>
+
+      <section className="panel mt">
+        <h2>Joint actions with STC</h2>
+        <p className="section-sub">Agreed follow-up between Asalah and STC.</p>
+        <ActionsList list={d.actions} />
+      </section>
+      <p className="footer-note">
+        Survey answers, not verified STC transactions. Combined results appear only when at least 3 companies each have
+        10 or more answers. No company names are shown.
+      </p>
+    </>
+  );
+}
