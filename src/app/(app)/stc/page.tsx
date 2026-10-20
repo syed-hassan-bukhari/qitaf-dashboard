@@ -57,7 +57,7 @@ export default function StcPage() {
       <section className="grid-row mt">
         <div className="panel grow-3">
           <H2 info="company.scores">Experience scores</H2>
-          <p className="section-sub">Average from 1 to 5. The dashed line marks 4.0.</p>
+          <p className="section-sub">Average from 1 (lowest) to 5 (highest).</p>
           <ScoreDots items={d.items} />
         </div>
         <div className="panel grow-2">
@@ -74,7 +74,7 @@ export default function StcPage() {
       </section>
       <p className="footer-note">
         Survey answers, not verified STC transactions. Combined results appear only when at least 3 companies each have
-        10 or more answers. No company names are shown.
+        the minimum number of answers for their survey round. No company names are shown.
       </p>
     </>
   );

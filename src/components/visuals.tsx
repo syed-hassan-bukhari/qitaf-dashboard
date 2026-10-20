@@ -61,7 +61,10 @@ export function Blocks({ pct }: { pct: number }) {
   );
 }
 
-export function ScoreDots({ items }: { items: Item[] }) {
+// `min` = the survey round's minimum number of answers; without it (STC pooled view) the text stays generic.
+export const underMinText = (min?: number) => (min ? `under ${min} answers` : "under the minimum number of answers");
+
+export function ScoreDots({ items, min }: { items: Item[]; min?: number }) {
   const entered = useEntered();
   return (
     <div className="dots">
@@ -70,7 +73,7 @@ export function ScoreDots({ items }: { items: Item[] }) {
           return (
             <div className="dot-row" key={it.code}>
               <span className="muted">{it.label}</span>
-              <Tip text={`${it.label}: Hidden: under 10 answers`} className="track"><span className="ref" /></Tip>
+              <Tip text={`${it.label}: Hidden: ${underMinText(min)}`} className="track" />
               <span className="hidden-score">Hidden</span>
             </div>
           );
@@ -84,7 +87,6 @@ export function ScoreDots({ items }: { items: Item[] }) {
             <Tip text={`${it.label}: ${it.score.toFixed(1)} out of 5, ${it.n} answers`} className="track">
               <span className="fill" style={{ display: "block", width: `${pct}%`, background: col, ...delay }} />
               <span className="dot" style={{ left: `${pct}%`, background: col, ...delay }} />
-              <span className="ref" />
             </Tip>
             <span className="score">{it.score.toFixed(1)}</span>
           </div>
@@ -115,9 +117,9 @@ export function FunnelChart({ f }: { f: Funnel }) {
 
 /* ---------- chips and lists ---------- */
 
-export function ReportChip({ status, n }: { status: ReportStatus; n: number }) {
+export function ReportChip({ status, n, min }: { status: ReportStatus; n: number; min?: number }) {
   if (status === "REPORTABLE") return <span className="chip chip-ok">Reportable (n={n})</span>;
-  if (status === "SUPPRESSED") return <span className="chip chip-wait">Hidden, under 10 answers</span>;
+  if (status === "SUPPRESSED") return <span className="chip chip-wait">Hidden, {underMinText(min)}</span>;
   return <span className="chip chip-off">No answers yet</span>;
 }
 

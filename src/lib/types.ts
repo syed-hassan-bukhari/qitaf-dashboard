@@ -60,6 +60,7 @@ export interface CompanyDashboard {
   company: CompanyRef;
   wave: { wave_id: string; status: string; record_type: string };
   status: ReportStatus;
+  min_responses?: number | null;
   kpi: {
     invited: number | null;
     invited_verified: boolean;
@@ -91,6 +92,7 @@ export interface PortfolioCompany {
   invited_verified: boolean;
   responded: number;
   status: ReportStatus;
+  min_responses?: number | null;
   response_rate: number | null;
   items: Record<string, number | null> | null;
   csat: number | null;

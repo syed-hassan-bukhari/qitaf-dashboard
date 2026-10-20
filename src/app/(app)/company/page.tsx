@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { rpc } from "@/lib/supabase";
 import { useRpcData } from "@/lib/use-rpc-data";
-import { fmtTime } from "@/lib/format";
+import { fmtTime, minResponses } from "@/lib/format";
 import type { CompanyDashboard, CompanyRef } from "@/lib/types";
 import { ErrorCard, PageHead, PageSkeleton, ReportChip } from "@/components/visuals";
 import { CompanyView } from "@/components/company-view";
@@ -52,7 +52,7 @@ export default function CompanyPage() {
     <>
       <PageHead
         title={d.company.name}
-        sub={<>Wave {d.wave.wave_id}, {d.wave.status === "OPEN" ? "open" : "closed"}. <ReportChip status={d.status} n={d.kpi.responded} /></>}
+        sub={<>Wave {d.wave.wave_id}, {d.wave.status === "OPEN" ? "open" : "closed"}. <ReportChip status={d.status} n={d.kpi.responded} min={minResponses(d.min_responses)} /></>}
         extra={picker}
         updated={updated}
         onRefresh={reload}

@@ -1,11 +1,26 @@
 import type { ActionRow, Role } from "./types";
 
-export const scoreColor = (s: number) =>
-  s >= 4 ? "var(--accent)" : s >= 3.7 ? "var(--amber)" : "var(--coral)";
+// One neutral blue-teal scale: the shade only reflects the value (darker = higher). No good/bad colours.
+const SHADE_LIGHT = [169, 214, 229];
+const SHADE_DEEP = [22, 78, 112];
+const shadeAt = (s: number) => {
+  const t = Math.min(Math.max((s - 1) / 4, 0), 1);
+  const [r, g, b] = SHADE_LIGHT.map((c, i) => Math.round(c + (SHADE_DEEP[i] - c) * t));
+  return { t, bg: `rgb(${r}, ${g}, ${b})` };
+};
 
-export const tileColors = (s: number): [string, string] =>
-  s >= 4 ? ["#1F5A51", "#D5F5EF"] : s >= 3.7 ? ["#6B4A1C", "#FCE9C8"] : ["#6B2A1C", "#FCD9CF"];
+export const scoreColor = (s: number) => shadeAt(s).bg;
 
+// [background, text] for a tile or heatmap cell. Text flips to light on the darker shades.
+export const tileColors = (s: number): [string, string] => {
+  const { t, bg } = shadeAt(s);
+  return [bg, t > 0.45 ? "#F2FAFC" : "#0B2A38"];
+};
+
+// The confidentiality threshold comes from the database per survey round; 10 only if it is missing.
+export const DEFAULT_MIN_RESPONSES = 10;
+export const minResponses = (v: number | null | undefined) =>
+  typeof v === "number" && v > 0 ? v : DEFAULT_MIN_RESPONSES;
 export const fmtDate = (d: string | null | undefined) =>
   d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
 

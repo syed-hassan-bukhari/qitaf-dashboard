@@ -1,6 +1,6 @@
 "use client";
 
-import { BARRIER_TEXT, CODE_TEXT, scoreColor, tileColors } from "@/lib/format";
+import { BARRIER_TEXT, CODE_TEXT, minResponses, tileColors } from "@/lib/format";
 import type { CompanyDashboard, OrgItem } from "@/lib/types";
 import {
   ActionsList, AnimatedNumber, Blocks, FlashPanel, FunnelChart, H2, Kpi, OrgChip, Ring, ScoreDots, StateCard,
@@ -13,6 +13,7 @@ const orgText = (i: OrgItem) => (i.value ?? "").split(", ").map((c) => CODE_TEXT
 
 export function CompanyView({ d }: { d: CompanyDashboard }) {
   const k = d.kpi;
+  const min = minResponses(d.min_responses); // threshold for this survey round, from the database
   const f = d.funnel;
   // Items arrive sorted best -> worst with hidden last, so the lowest visible one is the last visible one.
   const lowest = [...d.items].reverse().find((i) => i.score !== null);
@@ -26,14 +27,14 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
         <StateCard title={d.status === "NO_RESPONSES" ? "No employee answers yet" : "Results are hidden to protect privacy"}>
           <p className="muted">
             {d.status === "NO_RESPONSES"
-              ? "No employee answers yet. Results will appear once at least 10 employees have answered."
-              : `${k.responded} employees have answered. Results appear at 10 answers, so no individual can be identified.`}
+              ? `No employee answers yet. Results will appear once at least ${min} employees have answered.`
+              : `${k.responded} employees have answered. Results appear at ${min} answers, so no individual can be identified.`}
           </p>
-          <div className="progress" role="progressbar" aria-label="Answers toward the 10 needed"
-            aria-valuemin={0} aria-valuemax={10} aria-valuenow={Math.min(k.responded, 10)}>
-            <i style={{ width: `${Math.min(k.responded / 10, 1) * 100}%` }} />
+          <div className="progress" role="progressbar" aria-label={`Answers toward the ${min} needed`}
+            aria-valuemin={0} aria-valuemax={min} aria-valuenow={Math.min(k.responded, min)}>
+            <i style={{ width: `${Math.min(k.responded / min, 1) * 100}%` }} />
           </div>
-          <p className="small muted" style={{ marginTop: 8 }}>{k.responded} of 10 answers needed</p>
+          <p className="small muted" style={{ marginTop: 8 }}>{k.responded} of {min} answers needed</p>
         </StateCard>
       ) : (
         <>
@@ -69,15 +70,15 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
             </Kpi>
             {lowest && lowest.score !== null ? (
               <Kpi label="Lowest score" info="company.lowest" value={<AnimatedNumber value={lowest.score} decimals={1} />} watch={lowest.score}
-                note={lowest.label} color={scoreColor(lowest.score)} />
+                note={lowest.label} />
             ) : null}
           </section>
 
           <section className="grid-row mt">
             <div className="panel grow-3">
               <H2 info="company.scores">Experience scores</H2>
-              <p className="section-sub">Average from 1 to 5. The dashed line marks 4.0.</p>
-              <ScoreDots items={d.items} />
+              <p className="section-sub">Average from 1 (lowest) to 5 (highest).</p>
+              <ScoreDots items={d.items} min={min} />
             </div>
             <div className="panel grow-2">
               <H2 info="company.journey">Redemption journey</H2>
@@ -86,7 +87,7 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
               <div className="note">
                 {Array.isArray(d.barriers)
                   ? "Main reasons for not redeeming: " + d.barriers.map((b) => `${BARRIER_TEXT[b.reason] || b.reason} (${b.count})`).join(", ")
-                  : `Reasons for not redeeming are hidden: ${d.barriers ? d.barriers.n : 0} answers, under 10.`}
+                  : `Reasons for not redeeming are hidden: ${d.barriers ? d.barriers.n : 0} answers, under ${min}.`}
               </div>
             </div>
           </section>
@@ -131,7 +132,7 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
         <ActionsList list={d.actions} />
       </section>
       <p className="footer-note">
-        Survey answers, not verified STC transactions. Employee results appear only with 10 or more answers per question.
+        Survey answers, not verified STC transactions. Employee results appear only with {min} or more answers per question.
         Trends appear after the second survey wave.
       </p>
     </>

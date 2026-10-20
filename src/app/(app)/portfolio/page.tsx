@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { rpc } from "@/lib/supabase";
 import { useRpcData } from "@/lib/use-rpc-data";
-import { ITEM_COLS, fmtDate, fmtTime, tileColors } from "@/lib/format";
+import { ITEM_COLS, fmtDate, fmtTime, minResponses, tileColors } from "@/lib/format";
 import { downloadCsv, today } from "@/lib/csv";
 import type { CompanyDashboard, Portfolio, PortfolioCompany } from "@/lib/types";
 import {
@@ -50,7 +50,7 @@ function DrawerBody({ company, onClose }: { company: PortfolioCompany; onClose: 
         <div>
           <h2 style={{ fontSize: 24, fontWeight: 800 }}>{company.name}</h2>
           <div className="small muted" style={{ marginTop: 6 }}>
-            {data ? <>Wave {data.wave.wave_id}. <ReportChip status={data.status} n={data.kpi.responded} /></> : "Loading full results"}
+            {data ? <>Wave {data.wave.wave_id}. <ReportChip status={data.status} n={data.kpi.responded} min={minResponses(data.min_responses)} /></> : "Loading full results"}
           </div>
         </div>
         <button type="button" className="btn-ghost" onClick={onClose} data-autofocus aria-label={`Close ${company.name} results`}>
@@ -121,7 +121,7 @@ export default function PortfolioPage() {
       rows.map((c) => [
         c.name,
         c.record_type === "PILOT" ? "Yes" : "No",
-        c.status === "REPORTABLE" ? "Reportable" : c.status === "SUPPRESSED" ? "Hidden, under 10 answers" : "No answers yet",
+        c.status === "REPORTABLE" ? "Reportable" : c.status === "SUPPRESSED" ? `Hidden, under ${minResponses(c.min_responses)} answers` : "No answers yet",
         c.responded,
         c.response_rate !== null ? c.response_rate : "Not confirmed",
         ...ITEM_COLS.map(([code]) => {
@@ -145,7 +145,7 @@ export default function PortfolioPage() {
         <Kpi label="Companies" info="portfolio.companies" value={<AnimatedNumber value={k.companies} />} watch={k.companies} note={`${k.reportable} reportable`} />
         <Kpi label="Employee answers" info="portfolio.answers" value={<AnimatedNumber value={k.responses} />} watch={k.responses} note="Accepted answers" />
         <Kpi label="Below threshold" info="portfolio.below" value={<AnimatedNumber value={k.below_threshold} />} watch={k.below_threshold}
-          note="Under 10 answers or none" color="var(--amber)" />
+          note="Under the minimum number of answers, or none" color="var(--amber)" />
         <Kpi label="Open actions" info="portfolio.actions" value={<AnimatedNumber value={k.open_actions} />} watch={k.open_actions} note={`${k.high_priority} high priority`} />
         <Kpi label="In review queue" info="portfolio.review" value={<AnimatedNumber value={k.in_review_queue} />} watch={k.in_review_queue}
           note="Answers that failed validation" color={k.in_review_queue ? "var(--coral)" : undefined} />
@@ -155,7 +155,7 @@ export default function PortfolioPage() {
         <div className="panel-head">
           <div>
             <H2 info="heat.colours">Company heatmap</H2>
-            <p className="section-sub">Average employee scores from 1 to 5. Hidden means under 10 answers. Select a company to see its full results.</p>
+            <p className="section-sub">Average employee scores from 1 to 5. Hidden means under the minimum number of answers for that survey round. Select a company to see its full results.</p>
           </div>
           <button type="button" className="btn-ghost" onClick={exportCompanies} disabled={!rows.length}>Download CSV</button>
         </div>
@@ -198,7 +198,7 @@ export default function PortfolioPage() {
                     {c.record_type === "PILOT" ? <> <span className="chip chip-off">Pilot</span></> : null}
                     <div className="small muted">{c.responded} answers</div>
                   </td>
-                  <td><ReportChip status={c.status} n={c.responded} /></td>
+                  <td><ReportChip status={c.status} n={c.responded} min={minResponses(c.min_responses)} /></td>
                   <td>
                     {c.response_rate !== null ? (
                       <div className="rate">
@@ -212,7 +212,7 @@ export default function PortfolioPage() {
                     if (v === null || v === undefined) {
                       return (
                         <td key={code} className="cell-hidden">
-                          <Tip text={`${c.name}, ${label}: Hidden: under 10 answers`}>Hidden</Tip>
+                          <Tip text={`${c.name}, ${label}: Hidden: under ${minResponses(c.min_responses)} answers`}>Hidden</Tip>
                         </td>
                       );
                     }

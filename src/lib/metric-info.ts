@@ -14,14 +14,14 @@ export interface Metric {
 
 // Shared wording for the five 1–5 question columns.
 const ITEM_HOW = "Average of employee ratings from 1 (lowest) to 5 (highest) for that question.";
-const ITEM_HIDDEN = "Fewer than 10 people answered that question.";
+const ITEM_HIDDEN = "Too few people answered that question (under the minimum number of answers for this survey round).";
 
 export const METRICS = {
   /* ---------- Portfolio ---------- */
   "portfolio.companies": {
     section: "Portfolio", title: "Companies",
     what: "Companies taking part in the survey.",
-    how: "Count of companies, using each company’s latest survey round. “Reportable” = companies with 10 or more employee answers.",
+    how: "Count of companies, using each company’s latest survey round. “Reportable” = companies with at least the minimum number of employee answers for their survey round.",
   },
   "portfolio.answers": {
     section: "Portfolio", title: "Employee answers",
@@ -31,8 +31,8 @@ export const METRICS = {
   "portfolio.below": {
     section: "Portfolio", title: "Below threshold",
     what: "Companies whose results can’t be shown yet.",
-    how: "Companies with fewer than 10 employee answers, including those with none.",
-    hidden: "Their scores stay hidden until they reach 10 answers, so no individual can be identified.",
+    how: "Companies with fewer than the minimum number of employee answers for their survey round, including those with none.",
+    hidden: "Their scores stay hidden until they reach the minimum number of answers, so no individual can be identified.",
   },
   "portfolio.actions": {
     section: "Portfolio", title: "Open actions",
@@ -48,7 +48,7 @@ export const METRICS = {
   /* ---------- Heatmap columns ---------- */
   "heat.status": {
     section: "Heatmap columns", title: "Privacy status",
-    text: "Reportable (10+ answers, results shown), Hidden (1–9 answers), No answers yet.",
+    text: "Reportable (at least the minimum number of answers, results shown), Hidden (some answers, but under the minimum), No answers yet.",
   },
   "heat.rate": {
     section: "Heatmap columns", title: "Response rate",
@@ -61,21 +61,21 @@ export const METRICS = {
   "heat.A03": {
     section: "Heatmap columns", title: "Ease",
     how: "Average 1–5 rating of how easy redeeming was, only from employees who tried to redeem.",
-    hidden: "Fewer than 10 people tried.",
+    hidden: "Too few people tried (under the minimum number of answers for this survey round).",
   },
   "heat.A01": { section: "Heatmap columns", title: "Clarity", how: ITEM_HOW, hidden: ITEM_HIDDEN },
   "heat.satisfied": {
     section: "Heatmap columns", title: "Satisfied",
     how: "% of employees who rated their overall reward experience 4 or 5 out of 5.",
-    hidden: "Fewer than 10 answers.",
+    hidden: "Fewer answers than the minimum for this survey round.",
   },
   "heat.actions": {
     section: "Heatmap columns", title: "Actions",
     text: "Number of open follow-up actions for that company.",
   },
   "heat.colours": {
-    section: "Heatmap columns", title: "Heatmap colours",
-    text: "Green = 4.0 or higher, amber = 3.7–3.9, red = below 3.7 (needs attention).",
+    section: "Heatmap columns", title: "Heatmap shading",
+    text: "Darker shade = higher average score, on a scale from 1 (lowest) to 5 (highest). The number is always shown.",
   },
 
   /* ---------- Company results ---------- */
@@ -89,23 +89,23 @@ export const METRICS = {
   },
   "company.redeemed": {
     section: "Company results", title: "Redeemed successfully",
-    text: "Employees who said redeeming worked ÷ employees who received points. “% of those who tried” = successful ÷ those who tried (shown only when 10+ tried).",
+    text: "Employees who said redeeming worked ÷ employees who received points. “% of those who tried” = successful ÷ those who tried (shown only when at least the minimum number of people tried).",
   },
   "company.lowest": {
     section: "Company results", title: "Lowest score",
-    text: "The lowest of the visible experience scores; a good place to focus improvement.",
+    text: "The lowest of the visible experience scores.",
   },
   "company.scores": {
     section: "Company results", title: "Experience scores",
-    text: "Average 1–5 rating per question. The dashed line marks 4.0 as a reference for “good”. Hidden = under 10 answers for that question.",
+    text: "Average rating per question, from 1 (lowest) to 5 (highest). Hidden = under the minimum number of answers for this survey round for that question.",
   },
   "company.journey": {
     section: "Company results", title: "Redemption journey",
-    text: "Received points → Tried to redeem → Redeemed, based on what employees reported in the survey, not on verified STC transactions. Reasons for not redeeming are shown only with 10+ answers.",
+    text: "Received points → Tried to redeem → Redeemed, based on what employees reported in the survey, not on verified STC transactions. Reasons for not redeeming are shown only when there are at least the minimum number of answers.",
   },
   "company.org": {
     section: "Company results", title: "HR and IT assessment",
-    text: "Answers from one authorised HR and one IT person at the company. Submitted / Not submitted / Not applicable (the form doesn’t apply to this company). Scores are 1–5.",
+    text: "Answers from one authorised HR and one IT person at the company. Submitted / Not submitted / Not applicable (the form doesn’t apply to this company). Scores run from 1 (lowest) to 5 (highest).",
   },
   "company.actions": {
     section: "Company results", title: "Actions",
@@ -115,7 +115,7 @@ export const METRICS = {
   /* ---------- STC view ---------- */
   "stc.about": {
     section: "STC view", title: "STC view",
-    text: "Combined results across companies, excluding the pilot. Only companies with 10+ answers are included, and results appear only when at least 3 such companies exist, so no single company can be identified. No company names are shown.",
+    text: "Combined results across companies, excluding the pilot. Only companies with at least the minimum number of answers for their survey round are included, and results appear only when at least 3 such companies exist, so no single company can be identified. No company names are shown.",
   },
   "stc.rate": {
     section: "STC view", title: "Response rate",

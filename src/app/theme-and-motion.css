@@ -20,6 +20,7 @@
   --funnel-1: #8FA0BF;
   --tip-bg: #0F1A2B; --tip-fg: #F4F6FA;
   --flash: rgba(10, 127, 110, .16);
+  --dot-ring: rgba(15, 26, 43, .6);
   color-scheme: light;
 }
 :root[data-theme="light"] .brand-mark svg { stroke: #fff; }
@@ -128,3 +129,7 @@ html { scrollbar-gutter: stable; }
 .glossary-section + .glossary-entry { border-top: 0; }
 
 @media (prefers-reduced-motion: reduce) { .info-backdrop, .info-sheet { animation: none !important; } }
+
+/* Neutral score shades: a ring keeps the dot and bar visible whatever the shade and theme. */
+.track .dot { box-shadow: 0 0 0 2px var(--dot-ring); }
+.track .fill { box-shadow: 0 0 0 1px var(--dot-ring); }

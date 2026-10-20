@@ -23,6 +23,7 @@
   --funnel-1: #3B4C6B;
   --tip-bg: #E7ECF4; --tip-fg: #0B111C;
   --flash: rgba(63, 208, 184, .22);
+  --dot-ring: rgba(231, 236, 244, .9);
   color-scheme: dark;
   --radius-lg: 18px;
   --radius-sm: 10px;
