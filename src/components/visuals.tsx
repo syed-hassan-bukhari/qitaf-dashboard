@@ -47,7 +47,7 @@ export function Ring({ pct, size = 150 }: { pct: number; size?: number }) {
       <circle cx="80" cy="80" r={r} fill="none" stroke="var(--line)" strokeWidth="16" />
       <circle cx="80" cy="80" r={r} fill="none" stroke="var(--accent)" strokeWidth="16" strokeLinecap="round"
         strokeDasharray={`${d.toFixed(1)} ${c.toFixed(1)}`} transform="rotate(-90 80 80)" />
-      <text x="80" y="90" textAnchor="middle" fontSize="32" fontWeight="800" fill="var(--text)">{Math.round(shown)}%</text>
+      <text x="80" y="90" textAnchor="middle" fontSize="32" fontWeight="500" fill="var(--text)">{Math.round(shown)}%</text>
     </svg>
   );
 }
@@ -110,7 +110,7 @@ export function FunnelChart({ f }: { f: Funnel }) {
     <div className="funnel" role="img" aria-label={`${f.received} received, ${f.tried} tried, ${f.succeeded} redeemed`}>
       {col(f.received, "Received points", "var(--funnel-1)", 0)}
       {col(f.tried, "Tried to redeem", "var(--blue)", 1)}
-      {col(f.succeeded, "Redeemed", "var(--accent)", 2)}
+      {col(f.succeeded, "Redeemed", "var(--brand)", 2)}
     </div>
   );
 }

@@ -30,8 +30,12 @@ function LoginForm() {
   return (
     <main className="login">
       <form className="login-card" onSubmit={onSubmit}>
-        <h1>Qitaf Insights</h1>
-        <p className="muted">Sign in to see your rewards results.</p>
+        <div className="login-logo">
+          <img className="logo-dark" src="/brand/qitaf-logo-secondary-white.svg" alt="qitaf from stc" width={183} height={56} />
+          <img className="logo-light" src="/brand/qitaf-logo-secondary-purple.svg" alt="qitaf from stc" width={183} height={56} />
+        </div>
+        <h1>Sign in</h1>
+        <p className="muted">Qitaf Insights: see your rewards results.</p>
         <p><span className="demo-flag">Fictional demo data</span></p>
         <div className="field">
           <label htmlFor="email">Email</label>

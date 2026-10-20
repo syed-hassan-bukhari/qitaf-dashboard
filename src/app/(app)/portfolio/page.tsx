@@ -48,7 +48,7 @@ function DrawerBody({ company, onClose }: { company: PortfolioCompany; onClose: 
     <>
       <div className="drawer-head">
         <div>
-          <h2 style={{ fontSize: 24, fontWeight: 800 }}>{company.name}</h2>
+          <h2 style={{ fontSize: 24, fontWeight: 600 }}>{company.name}</h2>
           <div className="small muted" style={{ marginTop: 6 }}>
             {data ? <>Wave {data.wave.wave_id}. <ReportChip status={data.status} n={data.kpi.responded} min={minResponses(data.min_responses)} /></> : "Loading full results"}
           </div>
@@ -148,7 +148,7 @@ export default function PortfolioPage() {
           note="Under the minimum number of answers, or none" color="var(--amber)" />
         <Kpi label="Open actions" info="portfolio.actions" value={<AnimatedNumber value={k.open_actions} />} watch={k.open_actions} note={`${k.high_priority} high priority`} />
         <Kpi label="In review queue" info="portfolio.review" value={<AnimatedNumber value={k.in_review_queue} />} watch={k.in_review_queue}
-          note="Answers that failed validation" color={k.in_review_queue ? "var(--coral)" : undefined} />
+          note="Answers that failed validation" color={k.in_review_queue ? "var(--alert-text)" : undefined} />
       </section>
 
       <section className="panel mt">

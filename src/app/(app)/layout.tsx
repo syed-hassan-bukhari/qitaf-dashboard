@@ -77,17 +77,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="wrap">
         <header className="topbar">
           <div className="brand">
-            <div className="brand-mark">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#062A25" strokeWidth="2.2" aria-hidden="true">
-                <path d="M4 19V10M10 19V5M16 19v-7M22 19H2" />
-              </svg>
-            </div>
+            <span className="brand-logo">
+              {/* Logo files are used exactly as supplied: never recoloured, stretched or boxed. 50px high minimum. */}
+              <img className="logo-dark" src="/brand/qitaf-logo-main-white.svg" alt="qitaf from stc" width={81} height={50} />
+              <img className="logo-light" src="/brand/qitaf-logo-main-purple.svg" alt="qitaf from stc" width={81} height={50} />
+            </span>
+            <span className="brand-divider" aria-hidden="true" />
             <div>
-              <div style={{ fontWeight: 800 }}>Qitaf Insights</div>
+              <div className="brand-name">Insights</div>
               <div className="small muted">{roleText}</div>
             </div>
-          </div>
-          <nav className="nav" aria-label="Sections">
+          </div>          <nav className="nav" aria-label="Sections">
             {NAV[profile.role].map((n) => (
               <Link key={n.href} href={n.href} aria-current={pathname === n.href ? "page" : undefined}>{n.label}</Link>
             ))}

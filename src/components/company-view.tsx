@@ -1,15 +1,13 @@
 "use client";
 
-import { BARRIER_TEXT, CODE_TEXT, minResponses, tileColors } from "@/lib/format";
-import type { CompanyDashboard, OrgItem } from "@/lib/types";
+import { BARRIER_TEXT, minResponses } from "@/lib/format";
+import type { CompanyDashboard } from "@/lib/types";
 import {
   ActionsList, AnimatedNumber, Blocks, FlashPanel, FunnelChart, H2, Kpi, OrgChip, Ring, ScoreDots, StateCard,
 } from "./visuals";
-import { Tip } from "./tip";
 import { InfoButton } from "./info-button";
+import { HrItChart } from "./hrit-chart";
 
-const isScoreTile = (i: OrgItem) => i.score !== null && String(i.value ?? "").startsWith("SCORE_");
-const orgText = (i: OrgItem) => (i.value ?? "").split(", ").map((c) => CODE_TEXT[c] || c).join(", ");
 
 export function CompanyView({ d }: { d: CompanyDashboard }) {
   const k = d.kpi;
@@ -18,8 +16,6 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
   // Items arrive sorted best -> worst with hidden last, so the lowest visible one is the last visible one.
   const lowest = [...d.items].reverse().find((i) => i.score !== null);
   const redeemedAll = f && f.received ? Math.round((f.succeeded / f.received) * 100) : null;
-  const tiles = d.org.items.filter(isScoreTile);
-  const others = d.org.items.filter((i) => !isScoreTile(i));
 
   return (
     <>
@@ -63,7 +59,7 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
               note={`${f.succeeded} of ${f.received} who received points`}
             >
               {f.success_among_tried != null ? (
-                <div className="small" style={{ color: "var(--accent)", marginTop: 12, fontWeight: 600 }}>
+                <div className="small" style={{ color: "var(--accent-text)", marginTop: 12, fontWeight: 600 }}>
                   {f.success_among_tried}% of those who tried
                 </div>
               ) : null}
@@ -103,27 +99,7 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
             <span className="small muted">Finance</span><OrgChip status={d.org.finance_status} />
           </div>
         </div>
-        {tiles.length ? (
-          <div className="tiles">
-            {tiles.map((t) => {
-              const [bg, fg] = tileColors(t.score as number);
-              return (
-                <Tip key={t.code} className="tile" style={{ background: bg, color: fg }}
-                  text={`${t.group} assessment, ${t.label}: ${t.score} out of 5`}>
-                  <div className="t-label">{t.group}: {t.label}</div>
-                  <div className="t-val">{t.score} / 5</div>
-                </Tip>
-              );
-            })}
-          </div>
-        ) : <p className="muted">No HR or IT assessment submitted yet.</p>}
-        {others.length ? (
-          <div className="note">
-            {others.map((o) => (
-              <div key={o.code}>{o.group}, {o.label}: <strong>{orgText(o)}</strong></div>
-            ))}
-          </div>
-        ) : null}
+        <HrItChart org={d.org} />
       </section>
 
       <section className="panel mt">

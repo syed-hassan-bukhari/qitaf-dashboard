@@ -1,0 +1,1 @@
+STC Forward is licensed and is not included. Put STCForward-Light.woff2, STCForward-Regular.woff2 and STCForward-Medium.woff2 in this folder and they load automatically (see @font-face in src/app/globals.css). Until then the site uses Sora.

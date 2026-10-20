@@ -22,7 +22,7 @@ export function GlossaryButton({ role }: { role: Role }) {
         <Drawer label="How to read this dashboard" onClose={() => setOpen(false)}>
           <div className="drawer-head">
             <div>
-              <h2 style={{ fontSize: 24, fontWeight: 800 }}>How to read this dashboard</h2>
+              <h2 style={{ fontSize: 24, fontWeight: 600 }}>How to read this dashboard</h2>
               <p className="small muted" style={{ marginTop: 6 }}>
                 What each number means, how it is worked out, and when it is hidden to protect privacy.
               </p>
