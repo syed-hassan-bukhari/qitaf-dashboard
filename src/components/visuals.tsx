@@ -5,6 +5,8 @@ import type { ActionRow, Funnel, Item, OrgStatus, ReportStatus } from "@/lib/typ
 import { fmtDate, isOverdue, scoreColor } from "@/lib/format";
 import { useAnimatedNumber, useEntered } from "@/lib/motion";
 import { Tip } from "./tip";
+import { InfoButton } from "./info-button";
+import type { MetricId } from "@/lib/metric-info";
 
 /* ---------- motion helpers ---------- */
 
@@ -159,12 +161,12 @@ export function ActionsList({ list, showCompany }: { list: ActionRow[]; showComp
   );
 }
 
-export function Kpi({ label, value, note, color, className = "grow-1", watch, children }: {
-  label: string; value: ReactNode; note?: ReactNode; color?: string; className?: string; watch?: unknown; children?: ReactNode;
+export function Kpi({ label, info, value, note, color, className = "grow-1", watch, children }: {
+  label: string; info?: MetricId; value: ReactNode; note?: ReactNode; color?: string; className?: string; watch?: unknown; children?: ReactNode;
 }) {
   return (
     <FlashPanel className={className} watch={watch ?? (typeof value === "string" || typeof value === "number" ? value : null)}>
-      <div className="kpi-label">{label}</div>
+      <div className="kpi-label">{label}{info ? <InfoButton id={info} /> : null}</div>
       <div className="kpi-num" style={color ? { color } : undefined}>{value}</div>
       {note ? <div className="small muted">{note}</div> : null}
       {children}
@@ -192,14 +194,14 @@ export function ErrorCard({ message, onRetry }: { message: string; onRetry: () =
   );
 }
 
-export function PageHead({ title, sub, extra, updated, onRefresh, fmt }: {
-  title: ReactNode; sub?: ReactNode; extra?: ReactNode; updated: Date | null; onRefresh: () => void;
+export function PageHead({ title, info, sub, extra, updated, onRefresh, fmt }: {
+  title: ReactNode; info?: MetricId; sub?: ReactNode; extra?: ReactNode; updated: Date | null; onRefresh: () => void;
   fmt: (d: Date) => string;
 }) {
   return (
     <div className="page-head">
       <div>
-        <h1>{title}</h1>
+        <div className="title-row"><h1>{title}</h1>{info ? <InfoButton id={info} /> : null}</div>
         {sub ? <div className="muted small" style={{ marginTop: 6 }}>{sub}</div> : null}
       </div>
       <div className="refresh">
@@ -238,4 +240,9 @@ export function PageSkeleton({ rows = 4 }: { rows?: number }) {
       </div>
     </div>
   );
+}
+
+// Section heading with an info button next to it.
+export function H2({ children, info }: { children: ReactNode; info: MetricId }) {
+  return <h2>{children}<InfoButton id={info} /></h2>;
 }

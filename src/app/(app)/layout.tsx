@@ -10,6 +10,7 @@ import type { Profile } from "@/lib/types";
 import { ProfileContext } from "@/lib/profile-context";
 import { ToastProvider } from "@/lib/toast";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { GlossaryButton } from "@/components/glossary";
 
 const ROLE_LABEL = { ADMIN: "Asalah admin", STC: "STC", COMPANY_HR: "Company HR" } as const;
 
@@ -93,6 +94,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </nav>
           <div className="who">
             <span className="demo-flag">Fictional demo data</span>
+            <GlossaryButton role={profile.role} />
             <ThemeToggle />
             <span className="small muted">{profile.email}</span>
             <button type="button" className="btn-ghost" onClick={signOut}>Sign out</button>

@@ -7,11 +7,13 @@ import { ITEM_COLS, fmtDate, fmtTime, tileColors } from "@/lib/format";
 import { downloadCsv, today } from "@/lib/csv";
 import type { CompanyDashboard, Portfolio, PortfolioCompany } from "@/lib/types";
 import {
-  ActionsList, AnimatedNumber, ErrorCard, Kpi, PageHead, PageSkeleton, ReportChip, actionStatusText,
+  ActionsList, AnimatedNumber, ErrorCard, H2, Kpi, PageHead, PageSkeleton, ReportChip, actionStatusText,
 } from "@/components/visuals";
 import { CompanyView } from "@/components/company-view";
 import { Drawer } from "@/components/drawer";
 import { Tip } from "@/components/tip";
+import { InfoButton } from "@/components/info-button";
+import { itemMetricId, type MetricId } from "@/lib/metric-info";
 
 type Filter = "all" | "reportable" | "hidden" | "pilot";
 type Sort = { key: string; dir: "asc" | "desc" } | null;
@@ -101,11 +103,14 @@ export default function PortfolioPage() {
     setSort((s) => (s && s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: key === "name" ? "asc" : "desc" }));
   const sortMark = (key: string) => (sort && sort.key === key ? (sort.dir === "asc" ? " ▲" : " ▼") : "");
   const ariaSort = (key: string) => (sort && sort.key === key ? (sort.dir === "asc" ? "ascending" : "descending") : "none");
-  const th = (key: string, label: string, center?: boolean) => (
+  const th = (key: string, label: string, info?: MetricId, center?: boolean) => (
     <th key={key} aria-sort={ariaSort(key)} style={center ? { textAlign: "center" } : undefined}>
-      <button type="button" className="th-btn" onClick={() => toggleSort(key)} aria-label={`Sort by ${label}`}>
-        {label}{sortMark(key)}
-      </button>
+      <div className={`th-inner ${center ? "center" : ""}`}>
+        <button type="button" className="th-btn" onClick={() => toggleSort(key)} aria-label={`Sort by ${label}`}>
+          {label}{sortMark(key)}
+        </button>
+        {info ? <InfoButton id={info} /> : null}
+      </div>
     </th>
   );
 
@@ -137,19 +142,19 @@ export default function PortfolioPage() {
       <PageHead title="Portfolio" sub="All companies in the program, their privacy status and follow-up."
         updated={updated} onRefresh={reload} fmt={fmtTime} />
       <section className="grid-row">
-        <Kpi label="Companies" value={<AnimatedNumber value={k.companies} />} watch={k.companies} note={`${k.reportable} reportable`} />
-        <Kpi label="Employee answers" value={<AnimatedNumber value={k.responses} />} watch={k.responses} note="Accepted answers" />
-        <Kpi label="Below threshold" value={<AnimatedNumber value={k.below_threshold} />} watch={k.below_threshold}
+        <Kpi label="Companies" info="portfolio.companies" value={<AnimatedNumber value={k.companies} />} watch={k.companies} note={`${k.reportable} reportable`} />
+        <Kpi label="Employee answers" info="portfolio.answers" value={<AnimatedNumber value={k.responses} />} watch={k.responses} note="Accepted answers" />
+        <Kpi label="Below threshold" info="portfolio.below" value={<AnimatedNumber value={k.below_threshold} />} watch={k.below_threshold}
           note="Under 10 answers or none" color="var(--amber)" />
-        <Kpi label="Open actions" value={<AnimatedNumber value={k.open_actions} />} watch={k.open_actions} note={`${k.high_priority} high priority`} />
-        <Kpi label="In review queue" value={<AnimatedNumber value={k.in_review_queue} />} watch={k.in_review_queue}
+        <Kpi label="Open actions" info="portfolio.actions" value={<AnimatedNumber value={k.open_actions} />} watch={k.open_actions} note={`${k.high_priority} high priority`} />
+        <Kpi label="In review queue" info="portfolio.review" value={<AnimatedNumber value={k.in_review_queue} />} watch={k.in_review_queue}
           note="Answers that failed validation" color={k.in_review_queue ? "var(--coral)" : undefined} />
       </section>
 
       <section className="panel mt">
         <div className="panel-head">
           <div>
-            <h2>Company heatmap</h2>
+            <H2 info="heat.colours">Company heatmap</H2>
             <p className="section-sub">Average employee scores from 1 to 5. Hidden means under 10 answers. Select a company to see its full results.</p>
           </div>
           <button type="button" className="btn-ghost" onClick={exportCompanies} disabled={!rows.length}>Download CSV</button>
@@ -173,11 +178,11 @@ export default function PortfolioPage() {
             <thead>
               <tr>
                 {th("name", "Company")}
-                {th("status", "Privacy status")}
-                {th("rate", "Response rate")}
-                {ITEM_COLS.map(([code, l]) => th(code, l, true))}
-                {th("csat", "Satisfied", true)}
-                {th("actions", "Actions", true)}
+                {th("status", "Privacy status", "heat.status")}
+                {th("rate", "Response rate", "heat.rate")}
+                {ITEM_COLS.map(([code, l]) => th(code, l, itemMetricId(code), true))}
+                {th("csat", "Satisfied", "heat.satisfied", true)}
+                {th("actions", "Actions", "heat.actions", true)}
               </tr>
             </thead>
             <tbody>
@@ -234,7 +239,7 @@ export default function PortfolioPage() {
       <section className="panel mt">
         <div className="panel-head">
           <div>
-            <h2>Open actions</h2>
+            <H2 info="portfolio.actions">Open actions</H2>
             <p className="section-sub">Across all companies, soonest first.</p>
           </div>
           <button type="button" className="btn-ghost" onClick={exportActions} disabled={!d.actions.length}>Download CSV</button>

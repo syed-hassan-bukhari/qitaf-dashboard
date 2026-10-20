@@ -21,7 +21,7 @@ export default function ReviewPage() {
 
   return (
     <>
-      <PageHead title="Review queue" sub="Answers that failed validation. They are kept, not counted, until fixed."
+      <PageHead title="Review queue" info="review.about" sub="Answers that failed validation. They are kept, not counted, until fixed."
         updated={updated} onRefresh={reload} fmt={fmtTime} />
       <section className="panel">
         {rows.length ? (

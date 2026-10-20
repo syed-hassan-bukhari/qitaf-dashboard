@@ -3,9 +3,10 @@
 import { BARRIER_TEXT, CODE_TEXT, scoreColor, tileColors } from "@/lib/format";
 import type { CompanyDashboard, OrgItem } from "@/lib/types";
 import {
-  ActionsList, AnimatedNumber, Blocks, FlashPanel, FunnelChart, Kpi, OrgChip, Ring, ScoreDots, StateCard,
+  ActionsList, AnimatedNumber, Blocks, FlashPanel, FunnelChart, H2, Kpi, OrgChip, Ring, ScoreDots, StateCard,
 } from "./visuals";
 import { Tip } from "./tip";
+import { InfoButton } from "./info-button";
 
 const isScoreTile = (i: OrgItem) => i.score !== null && String(i.value ?? "").startsWith("SCORE_");
 const orgText = (i: OrgItem) => (i.value ?? "").split(", ").map((c) => CODE_TEXT[c] || c).join(", ");
@@ -40,12 +41,13 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
             <FlashPanel className="grow-2 hero" watch={k.csat}>
               {k.csat !== null ? <Ring pct={k.csat} /> : null}
               <div>
-                <div className="kpi-label">Employees satisfied</div>
+                <div className="kpi-label">Employees satisfied<InfoButton id="company.satisfied" /></div>
                 <div style={{ marginTop: 8 }}>{k.csat_favorable} of {k.csat_n} rated their overall experience 4 or 5</div>
               </div>
             </FlashPanel>
             <Kpi
               label="Response rate"
+              info="company.rate"
               value={k.response_rate !== null ? <AnimatedNumber value={k.response_rate} suffix="%" /> : "—"}
               watch={k.response_rate}
               note={k.response_rate !== null ? `${k.responded} of ${k.invited} invited` : `${k.responded} answers; invited count not confirmed`}
@@ -54,6 +56,7 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
             </Kpi>
             <Kpi
               label="Redeemed successfully"
+              info="company.redeemed"
               value={redeemedAll !== null ? <AnimatedNumber value={redeemedAll} suffix="%" /> : "—"}
               watch={redeemedAll}
               note={`${f.succeeded} of ${f.received} who received points`}
@@ -65,19 +68,19 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
               ) : null}
             </Kpi>
             {lowest && lowest.score !== null ? (
-              <Kpi label="Lowest score" value={<AnimatedNumber value={lowest.score} decimals={1} />} watch={lowest.score}
+              <Kpi label="Lowest score" info="company.lowest" value={<AnimatedNumber value={lowest.score} decimals={1} />} watch={lowest.score}
                 note={lowest.label} color={scoreColor(lowest.score)} />
             ) : null}
           </section>
 
           <section className="grid-row mt">
             <div className="panel grow-3">
-              <h2>Experience scores</h2>
+              <H2 info="company.scores">Experience scores</H2>
               <p className="section-sub">Average from 1 to 5. The dashed line marks 4.0.</p>
               <ScoreDots items={d.items} />
             </div>
             <div className="panel grow-2">
-              <h2>Redemption journey</h2>
+              <H2 info="company.journey">Redemption journey</H2>
               <p className="section-sub">What employees told us, not verified STC transactions.</p>
               <FunnelChart f={f} />
               <div className="note">
@@ -92,7 +95,7 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
 
       <section className="panel mt">
         <div className="page-head" style={{ marginBottom: 14 }}>
-          <h2>HR and IT assessment</h2>
+          <H2 info="company.org">HR and IT assessment</H2>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
             <span className="small muted">HR</span><OrgChip status={d.org.hr_status} />
             <span className="small muted">IT</span><OrgChip status={d.org.it_status} />
@@ -123,7 +126,7 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
       </section>
 
       <section className="panel mt">
-        <h2>Actions</h2>
+        <H2 info="company.actions">Actions</H2>
         <p className="section-sub">What we agreed to do next.</p>
         <ActionsList list={d.actions} />
       </section>

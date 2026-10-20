@@ -4,8 +4,9 @@ import { rpc } from "@/lib/supabase";
 import { useRpcData } from "@/lib/use-rpc-data";
 import { fmtTime } from "@/lib/format";
 import type { StcOverview } from "@/lib/types";
+import { InfoButton } from "@/components/info-button";
 import {
-  ActionsList, AnimatedNumber, Blocks, ErrorCard, FlashPanel, FunnelChart, Kpi, PageHead, PageSkeleton, Ring, ScoreDots, StateCard,
+  ActionsList, AnimatedNumber, Blocks, ErrorCard, FlashPanel, FunnelChart, H2, Kpi, PageHead, PageSkeleton, Ring, ScoreDots, StateCard,
 } from "@/components/visuals";
 
 export default function StcPage() {
@@ -14,7 +15,7 @@ export default function StcPage() {
   if (!d) return <PageSkeleton />;
 
   const head = (
-    <PageHead title="Program overview" sub="Combined results across participating companies. Pilot data is excluded."
+    <PageHead title="Program overview" info="stc.about" sub="Combined results across participating companies. Pilot data is excluded."
       updated={updated} onRefresh={reload} fmt={fmtTime} />
   );
 
@@ -39,35 +40,35 @@ export default function StcPage() {
         <FlashPanel className="grow-2 hero" watch={d.csat}>
           <Ring pct={d.csat} />
           <div>
-            <div className="kpi-label">Employees satisfied</div>
+            <div className="kpi-label">Employees satisfied<InfoButton id="company.satisfied" /></div>
             <div style={{ marginTop: 8 }}>Across {d.csat_n} employees in {d.reportable_companies} companies</div>
           </div>
         </FlashPanel>
-        <Kpi label="Participating companies" value={<AnimatedNumber value={d.participating} />} watch={d.participating}
+        <Kpi label="Participating companies" info="stc.about" value={<AnimatedNumber value={d.participating} />} watch={d.participating}
           note={`${d.reportable_companies} with enough answers to report`} />
-        <Kpi label="Response rate" value={d.response_rate !== null ? <AnimatedNumber value={d.response_rate} suffix="%" /> : "—"}
+        <Kpi label="Response rate" info="stc.rate" value={d.response_rate !== null ? <AnimatedNumber value={d.response_rate} suffix="%" /> : "—"}
           watch={d.response_rate} note="Companies with a confirmed invited count">
           {d.response_rate !== null ? <Blocks pct={d.response_rate} /> : null}
         </Kpi>
-        <Kpi label="Redeemed successfully" value={redeemed !== null ? <AnimatedNumber value={redeemed} suffix="%" /> : "—"}
+        <Kpi label="Redeemed successfully" info="company.redeemed" value={redeemed !== null ? <AnimatedNumber value={redeemed} suffix="%" /> : "—"}
           watch={redeemed} note={`${f.succeeded} of ${f.received} who received points`} />
       </section>
 
       <section className="grid-row mt">
         <div className="panel grow-3">
-          <h2>Experience scores</h2>
+          <H2 info="company.scores">Experience scores</H2>
           <p className="section-sub">Average from 1 to 5. The dashed line marks 4.0.</p>
           <ScoreDots items={d.items} />
         </div>
         <div className="panel grow-2">
-          <h2>Redemption journey</h2>
+          <H2 info="company.journey">Redemption journey</H2>
           <p className="section-sub">Self-reported, not verified STC transactions.</p>
           <FunnelChart f={f} />
         </div>
       </section>
 
       <section className="panel mt">
-        <h2>Joint actions with STC</h2>
+        <H2 info="company.actions">Joint actions with STC</H2>
         <p className="section-sub">Agreed follow-up between Asalah and STC.</p>
         <ActionsList list={d.actions} />
       </section>
