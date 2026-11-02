@@ -1,15 +1,17 @@
 "use client";
 
 import { BARRIER_TEXT, minResponses, responseRateTip, validResponses } from "@/lib/format";
+import { useProfile } from "@/lib/profile-context";
 import type { CompanyDashboard } from "@/lib/types";
 import {
-  ActionsList, AnimatedNumber, Blocks, FlashPanel, FunnelChart, H2, Kpi, OrgChip, Ring, ScoreDots, StateCard,
+  AnimatedNumber, Blocks, FlashPanel, FunnelChart, H2, Kpi, OrgChip, Ring, ScoreDots, StateCard,
 } from "./visuals";
 import { InfoButton } from "./info-button";
 import { HrItChart } from "./hrit-chart";
 
 
 export function CompanyView({ d }: { d: CompanyDashboard }) {
+  const isAdmin = useProfile().role === "ADMIN"; // the HR assessment is admin-only
   const k = d.kpi;
   const min = minResponses(d.min_responses); // threshold for this survey round, from the database
   const f = d.funnel;
@@ -91,23 +93,18 @@ export function CompanyView({ d }: { d: CompanyDashboard }) {
         </>
       )}
 
-      <section className="panel mt">
-        <div className="page-head" style={{ marginBottom: 14 }}>
-          <H2 info="company.org">HR and IT assessment</H2>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            <span className="small muted">HR</span><OrgChip status={d.org.hr_status} />
-            <span className="small muted">IT</span><OrgChip status={d.org.it_status} />
-            <span className="small muted">Finance</span><OrgChip status={d.org.finance_status} />
+      {isAdmin ? (
+        <section className="panel mt">
+          <div className="page-head" style={{ marginBottom: 14 }}>
+            <H2 info="company.org">HR assessment</H2>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <span className="small muted">HR</span><OrgChip status={d.org.hr_status} />
+            </div>
           </div>
-        </div>
-        <HrItChart org={d.org} />
-      </section>
+          <HrItChart org={d.org} />
+        </section>
+      ) : null}
 
-      <section className="panel mt">
-        <H2 info="company.actions">Actions</H2>
-        <p className="section-sub">What we agreed to do next.</p>
-        <ActionsList list={d.actions} />
-      </section>
       <p className="footer-note">
         Survey answers, not verified STC transactions. Employee results appear only with {min} or more valid responses per question.
         Trends appear after the second survey wave.
